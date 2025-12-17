@@ -1,0 +1,165 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather+Sans:ital,wght@0,300..800;1,300..800&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+@import 'tailwindcss';
+@import '../../vendor/livewire/flux/dist/flux.css';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
+@source '../../vendor/livewire/flux/stubs/**/*.blade.php';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    /* Bestehende Fonts */
+    --font-sans: 'Roboto', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Unsere neue Serif Font für Überschriften */
+    --font-serif: 'Merriweather Sans', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+
+    /* Bestehende Zinc Colors */
+    --color-zinc-50: #fafafa;
+    --color-zinc-100: #f5f5f5;
+    --color-zinc-200: #e5e5e5;
+    --color-zinc-300: #d4d4d4;
+    --color-zinc-400: #a3a3a3;
+    --color-zinc-500: #737373;
+    --color-zinc-600: #525252;
+    --color-zinc-700: #404040;
+    --color-zinc-800: #262626;
+    --color-zinc-900: #171717;
+    --color-zinc-950: #0a0a0a;
+
+    /* Unsere Clarity Colors (Brand) */
+    --color-brand-orange: #e69137;
+    --color-brand-orange-light: #fae7d4;
+    --color-brand-blue: #6fa8dc;
+    --color-brand-blue-light: #e2edf8;
+
+    /* Defaults für Accent */
+    --color-accent: var(--color-brand-orange);
+    /* Text auf dem Button soll weiß sein */
+    --color-accent-content: #ffffff;
+    /* Im Darkmode soll der Text auf dem Button auch weiß oder dunkelgrau sein, je nach Geschmack */
+    --color-accent-foreground: #ffffff;
+}
+
+@layer theme {
+    .dark {
+        --color-accent: var(--color-brand-orange);
+        --color-accent-content: #ffffff;
+        --color-accent-foreground: var(--color-neutral-800);
+    }
+}
+
+@layer utilities {
+    /* Hero Hintergrund: Hell */
+    .hero-bg {
+        background: linear-gradient(135deg, var(--color-brand-blue-light) 0%, #ffffff 50%, var(--color-brand-orange-light) 100%);
+    }
+
+    /* Hero Hintergrund: Dunkel (Dark Mode) */
+    .dark .hero-bg {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); /* Slate-900 to Slate-950 */
+    }
+
+    /* Logo Schatten */
+    .logo-shadow {
+        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.08));
+    }
+
+    .dark .logo-shadow {
+        filter: drop-shadow(0 4px 6px rgba(255, 255, 255, 0.1)); /* Leichter Glow im Dark Mode */
+    }
+
+    /* Hilfsklassen für Farben (optional, da Tailwind v4 --color-brand-orange automatisch als bg-brand-orange bereitstellt) */
+    .text-brand-orange {
+        color: var(--color-brand-orange);
+    }
+
+    .bg-brand-orange {
+        background-color: var(--color-brand-orange);
+    }
+
+    .hover-bg-brand-orange:hover {
+        background-color: #cf8230;
+    }
+
+    /* Darken 10% manually or use color-mix */
+}
+
+@layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+    }
+
+    /* Dark Mode Border Anpassung */
+    .dark *,
+    .dark ::after,
+    .dark ::before {
+        border-color: var(--color-zinc-800, currentColor);
+    }
+}
+
+/* Flux UI Styles */
+[data-flux-field]:not(ui-radio, ui-checkbox) {
+    @apply grid gap-2;
+}
+
+[data-flux-label] {
+    @apply !mb-0 !leading-tight;
+}
+
+input:focus[data-flux-control],
+textarea:focus[data-flux-control],
+select:focus[data-flux-control] {
+    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+}
+
+@layer components {
+    /* Selektiert alle Flux-Buttons mit variant="primary" */
+    [data-flux-button][data-variant="primary"]:hover {
+        /* Wichtig: !important nutzen, falls Flux sehr spezifische Selektoren hat */
+        background-color: var(--color-brand-blue) !important;
+        color: #ffffff !important;
+    }
+
+    /* Optional: Auch der Focus-Ring soll Blau werden */
+    [data-flux-button][data-variant="primary"]:focus-visible {
+        outline-color: var(--color-brand-blue);
+        ring-color: var(--color-brand-blue);
+    }
+}
+
+
+
+/**
+    The lines above are intact.
+    The lines below were added by maryUI installer.
+*/
+
+/** daisyUI */
+@plugin "daisyui" {
+    themes: light --default, dark --prefersdark;
+}
+
+/* maryUI */
+@source "../../vendor/robsontenorio/mary/src/View/Components/**/*.php";
+
+/* Theme toggle */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/**
+* Paginator - Traditional style
+* Because Laravel defaults does not match well the design of daisyUI.
+*/
+
+.mary-table-pagination span[aria-current="page"] > span {
+    @apply bg-primary text-base-100
+}
+
+.mary-table-pagination button {
+    @apply cursor-pointer
+}
