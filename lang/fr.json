@@ -258,5 +258,18 @@
     "Two-Factor Auth": "Authentification 2FA",
     "Disabled": "Désactivé",
     "Enable 2FA": "Activer 2FA",
-    "Manage your two-factor authentication settings": "Gérer vos paramètres d'authentification à deux facteurs"
+    "Manage your two-factor authentication settings": "Gérer vos paramètres d'authentification à deux facteurs",
+    "Owner": "Propriétaire",
+    "Invalid person type": "Type de personne non valide",
+    "Invalid customer": "Client non valide",
+    "Invalid family member": "Membre de la famille non valide",
+    "Please calculate Bagua grid first!": "Veuillez d'abord calculer la grille Bagua !",
+    "Person already assigned to this room.": "Cette personne est déjà assignée à cette pièce.",
+    "Assigned successfully!": "Assignation réussie !",
+    "Assignment removed.": "Assignation supprimée.",
+    "Direction updated and Bagua recalculated!": "Direction mise à jour et Bagua recalculé !",
+    "Missing bounds!": "Limites manquantes !",
+    "Error": "Erreur",
+    "Floor plan": "Plan d'étage",
+    "Person is already assigned to a room on this floor plan.": "La personne est déjà assignée à une pièce sur ce plan."
 }

@@ -293,5 +293,18 @@
     "App Dashboard": "App Dashboard",
     "CRM": "CRM",
     "To add, edit, or delete clients, please use the": "Um Klienten hinzuzufügen, zu bearbeiten oder zu löschen, nutze bitte das",
-    "CRM module in the Admin Panel": "CRM-Modul im Admin-Bereich"
+    "CRM module in the Admin Panel": "CRM-Modul im Admin-Bereich",
+    "Owner": "Eigentümer",
+    "Invalid person type": "Ungültiger Personentyp",
+    "Invalid customer": "Ungültiger Kunde",
+    "Invalid family member": "Ungültiges Familienmitglied",
+    "Please calculate Bagua grid first!": "Bitte zuerst das Bagua-Gitter berechnen!",
+    "Person already assigned to this room.": "Person ist diesem Raum bereits zugewiesen.",
+    "Assigned successfully!": "Erfolgreich zugewiesen!",
+    "Assignment removed.": "Zuweisung entfernt.",
+    "Direction updated and Bagua recalculated!": "Richtung aktualisiert und Bagua neu berechnet!",
+    "Missing bounds!": "Fehlende Abmessungen!",
+    "Error": "Fehler",
+    "Floor plan": "Grundriss",
+    "Person is already assigned to a room on this floor plan.": "Die Person ist bereits einem Raum auf diesem Grundriss zugewiesen."
 }

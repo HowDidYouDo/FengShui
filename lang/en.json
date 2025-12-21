@@ -258,5 +258,18 @@
     "Is Default": "Is Default",
     "Will be assigned to any new user upon user creation.": "Will be assigned to any new user upon user creation.",
     "Code": "Code",
-    "Price": "Price"
+    "Price": "Price",
+    "Owner": "Owner",
+    "Invalid person type": "Invalid person type",
+    "Invalid customer": "Invalid customer",
+    "Invalid family member": "Invalid family member",
+    "Please calculate Bagua grid first!": "Please calculate Bagua grid first!",
+    "Person already assigned to this room.": "Person already assigned to this room.",
+    "Assigned successfully!": "Assigned successfully!",
+    "Assignment removed.": "Assignment removed.",
+    "Direction updated and Bagua recalculated!": "Direction updated and Bagua recalculated!",
+    "Missing bounds!": "Missing bounds!",
+    "Error": "Error",
+    "Floor plan": "Floor plan",
+    "Person is already assigned to a room on this floor plan.": "Person is already assigned to a room on this floor plan."
 }
