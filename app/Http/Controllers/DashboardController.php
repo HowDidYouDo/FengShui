@@ -25,7 +25,7 @@ class DashboardController extends Controller
         // 2. User-Lizenzen laden
         $myLicenses = $user->features()
             ->where('active', true)
-            ->orderBy('order', 'asc')
+          //  ->orderBy('features.order', 'asc')
             ->get()
             ->keyBy('feature_id');
 

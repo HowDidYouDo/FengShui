@@ -124,9 +124,6 @@
 </flux:sidebar>
 
 {{ $slot }}
-@persist('toast')
-<flux:toast/>
-@endpersist
 
 <!-- Simple Notification Toast (Alpine) -->
 <div
