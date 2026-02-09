@@ -153,7 +153,7 @@ new class extends Component {
             wire:click="$set('showCreateModal', true)"
             class="w-full flex items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-brand-blue hover:bg-brand-blue/5 transition-all text-zinc-400 hover:text-brand-blue"
         >
-            <flux:icon.plus class="size-5" />
+            <flux:icon.plus class="size-5"/>
             <span class="font-medium">{{ __('Add Family Member') }}</span>
         </button>
     @endif
@@ -166,12 +166,14 @@ new class extends Component {
                     $guaAttr = $member->life_gua ? app(\App\Services\Metaphysics\MingGuaCalculator::class)->getAttributes($member->life_gua) : null;
                     $elementColors = $guaAttr ? app(\App\Services\Metaphysics\MingGuaCalculator::class)->getElementColors($guaAttr['element']) : null;
                 @endphp
-                <div class="group relative bg-white dark:bg-zinc-900 border-2 {{ $elementColors ? $elementColors[2] : 'border-zinc-200 dark:border-zinc-800' }} rounded-xl p-4 hover:shadow-md transition-all {{ $elementColors ? $elementColors[1] : '' }}">
+                <div
+                    class="group relative bg-white dark:bg-zinc-900 border-2 {{ $elementColors ? $elementColors[2] : 'border-zinc-200 dark:border-zinc-800' }} rounded-xl p-4 hover:shadow-md transition-all {{ $elementColors ? $elementColors[1] : '' }}">
 
                     <div class="flex items-start justify-between">
                         <div class="flex items-center gap-3 flex-1 min-w-0">
                             <!-- Avatar -->
-                            <div class="w-12 h-12 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-800 shadow-sm {{ $elementColors ? $elementColors[1] . ' ' . $elementColors[0] : 'bg-brand-orange/10 text-brand-orange' }} font-bold text-xl shrink-0">
+                            <div
+                                class="w-12 h-12 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-800 shadow-sm {{ $elementColors ? $elementColors[1] . ' ' . $elementColors[0] : 'bg-brand-orange/10 text-brand-orange' }} font-bold text-xl shrink-0">
                                 {{ substr($member->name, 0, 1) }}
                             </div>
 
@@ -179,7 +181,8 @@ new class extends Component {
                                 <div class="flex items-center gap-2">
                                     <h4 class="font-bold text-zinc-900 dark:text-white truncate">{{ $member->name }}</h4>
                                     @if($member->life_gua)
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase {{ $elementColors ? $elementColors[0] . ' ' . $elementColors[1] : 'bg-zinc-100 text-zinc-600' }}">
+                                        <span
+                                            class="px-2 py-0.5 rounded text-[10px] font-bold uppercase {{ $elementColors ? $elementColors[0] . ' ' . $elementColors[1] : 'bg-zinc-100 text-zinc-600' }}">
                                             Gua {{ $member->life_gua }}
                                         </span>
                                     @endif
@@ -189,7 +192,8 @@ new class extends Component {
                                         <p class="text-xs text-zinc-500">{{ $member->getRelationshipLabel() }}</p>
                                     @endif
                                     @if($guaAttr)
-                                        <span class="text-[10px] font-bold uppercase tracking-widest opacity-70 {{ $elementColors ? $elementColors[0] : '' }}">
+                                        <span
+                                            class="text-[10px] font-bold uppercase tracking-widest opacity-70 {{ $elementColors ? $elementColors[0] : '' }}">
                                             • {{ $guaAttr['element'] }}
                                         </span>
                                     @endif
@@ -218,18 +222,18 @@ new class extends Component {
                     <!-- Birth Data -->
                     <div class="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800/50 text-sm space-y-1">
                         <div class="flex items-center gap-2 text-zinc-500">
-                            <flux:icon.calendar class="size-4 text-zinc-400" />
+                            <flux:icon.calendar class="size-4 text-zinc-400"/>
                             <span>{{ $member->birth_date->format('d.m.Y') }}</span>
                             @if($member->birth_time)
                                 <span class="text-zinc-400">•</span>
-                                <flux:icon.clock class="size-4 text-zinc-400" />
+                                <flux:icon.clock class="size-4 text-zinc-400"/>
                                 <span>{{ \Carbon\Carbon::parse($member->birth_time)->format('H:i') }}</span>
                             @endif
                         </div>
 
                         @if($member->birth_place)
                             <div class="flex items-center gap-2 text-zinc-500">
-                                <flux:icon.map-pin class="size-4 text-zinc-400" />
+                                <flux:icon.map-pin class="size-4 text-zinc-400"/>
                                 <span>{{ $member->birth_place }}</span>
                             </div>
                         @endif
@@ -237,13 +241,15 @@ new class extends Component {
                         <!-- Gender Badge -->
                         <div class="flex items-center gap-2">
                             @if($member->gender === 'm')
-                                <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium">
-                                    <flux:icon.user class="size-3" />
+                                <div
+                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium">
+                                    <flux:icon.user class="size-3"/>
                                     {{ __('Male') }}
                                 </div>
                             @else
-                                <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-xs font-medium">
-                                    <flux:icon.user-circle class="size-3" />
+                                <div
+                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-xs font-medium">
+                                    <flux:icon.user-circle class="size-3"/>
                                     {{ __('Female') }}
                                 </div>
                             @endif
@@ -253,8 +259,9 @@ new class extends Component {
             @endforeach
         </div>
     @else
-        <div class="text-center py-8 text-zinc-400 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
-            <flux:icon.users class="size-12 mx-auto mb-2 text-zinc-300" />
+        <div
+            class="text-center py-8 text-zinc-400 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
+            <flux:icon.users class="size-12 mx-auto mb-2 text-zinc-300"/>
             <p>{{ __('No family members added yet.') }}</p>
         </div>
     @endif
@@ -313,28 +320,36 @@ new class extends Component {
                                     <!-- Male Option -->
                                     <label class="flex-1 relative cursor-pointer">
                                         <input type="radio" wire:model="gender" value="m" class="peer sr-only">
-                                        <div class="p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 hover:border-brand-blue dark:hover:border-brand-blue peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition-all flex items-center justify-center gap-3 h-full">
-                                            <flux:icon.user class="size-5 text-zinc-400 peer-checked:text-brand-orange" />
-                                            <span class="font-medium text-zinc-700 dark:text-zinc-300 peer-checked:text-brand-orange">
+                                        <div
+                                            class="p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 hover:border-brand-blue dark:hover:border-brand-blue peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition-all flex items-center justify-center gap-3 h-full">
+                                            <flux:icon.user
+                                                class="size-5 text-zinc-400 peer-checked:text-brand-orange"/>
+                                            <span
+                                                class="font-medium text-zinc-700 dark:text-zinc-300 peer-checked:text-brand-orange">
                                                 {{ __('Male') }}
                                             </span>
                                         </div>
-                                        <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-brand-orange transition-opacity">
-                                            <flux:icon.check-circle class="size-4" />
+                                        <div
+                                            class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-brand-orange transition-opacity">
+                                            <flux:icon.check-circle class="size-4"/>
                                         </div>
                                     </label>
 
                                     <!-- Female Option -->
                                     <label class="flex-1 relative cursor-pointer">
                                         <input type="radio" wire:model="gender" value="f" class="peer sr-only">
-                                        <div class="p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 hover:border-brand-blue dark:hover:border-brand-blue peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition-all flex items-center justify-center gap-3 h-full">
-                                            <flux:icon.user-circle class="size-5 text-zinc-400 peer-checked:text-brand-orange" />
-                                            <span class="font-medium text-zinc-700 dark:text-zinc-300 peer-checked:text-brand-orange">
+                                        <div
+                                            class="p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 hover:border-brand-blue dark:hover:border-brand-blue peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition-all flex items-center justify-center gap-3 h-full">
+                                            <flux:icon.user-circle
+                                                class="size-5 text-zinc-400 peer-checked:text-brand-orange"/>
+                                            <span
+                                                class="font-medium text-zinc-700 dark:text-zinc-300 peer-checked:text-brand-orange">
                                                 {{ __('Female') }}
                                             </span>
                                         </div>
-                                        <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-brand-orange transition-opacity">
-                                            <flux:icon.check-circle class="size-4" />
+                                        <div
+                                            class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-brand-orange transition-opacity">
+                                            <flux:icon.check-circle class="size-4"/>
                                         </div>
                                     </label>
                                 </div>
@@ -432,28 +447,36 @@ new class extends Component {
                                     <!-- Male Option -->
                                     <label class="flex-1 relative cursor-pointer">
                                         <input type="radio" wire:model="gender" value="m" class="peer sr-only">
-                                        <div class="p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 hover:border-brand-blue dark:hover:border-brand-blue peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition-all flex items-center justify-center gap-3 h-full">
-                                            <flux:icon.user class="size-5 text-zinc-400 peer-checked:text-brand-orange" />
-                                            <span class="font-medium text-zinc-700 dark:text-zinc-300 peer-checked:text-brand-orange">
+                                        <div
+                                            class="p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 hover:border-brand-blue dark:hover:border-brand-blue peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition-all flex items-center justify-center gap-3 h-full">
+                                            <flux:icon.user
+                                                class="size-5 text-zinc-400 peer-checked:text-brand-orange"/>
+                                            <span
+                                                class="font-medium text-zinc-700 dark:text-zinc-300 peer-checked:text-brand-orange">
                                                 {{ __('Male') }}
                                             </span>
                                         </div>
-                                        <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-brand-orange transition-opacity">
-                                            <flux:icon.check-circle class="size-4" />
+                                        <div
+                                            class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-brand-orange transition-opacity">
+                                            <flux:icon.check-circle class="size-4"/>
                                         </div>
                                     </label>
 
                                     <!-- Female Option -->
                                     <label class="flex-1 relative cursor-pointer">
                                         <input type="radio" wire:model="gender" value="f" class="peer sr-only">
-                                        <div class="p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 hover:border-brand-blue dark:hover:border-brand-blue peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition-all flex items-center justify-center gap-3 h-full">
-                                            <flux:icon.user-circle class="size-5 text-zinc-400 peer-checked:text-brand-orange" />
-                                            <span class="font-medium text-zinc-700 dark:text-zinc-300 peer-checked:text-brand-orange">
+                                        <div
+                                            class="p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 hover:border-brand-blue dark:hover:border-brand-blue peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition-all flex items-center justify-center gap-3 h-full">
+                                            <flux:icon.user-circle
+                                                class="size-5 text-zinc-400 peer-checked:text-brand-orange"/>
+                                            <span
+                                                class="font-medium text-zinc-700 dark:text-zinc-300 peer-checked:text-brand-orange">
                                                 {{ __('Female') }}
                                             </span>
                                         </div>
-                                        <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-brand-orange transition-opacity">
-                                            <flux:icon.check-circle class="size-4" />
+                                        <div
+                                            class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-brand-orange transition-opacity">
+                                            <flux:icon.check-circle class="size-4"/>
                                         </div>
                                     </label>
                                 </div>

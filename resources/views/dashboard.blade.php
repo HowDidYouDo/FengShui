@@ -85,15 +85,15 @@
                                 @if($hasAccess)
                                     @php
 
-                                            $routeName = 'modules.' . $feature->code;
-                                            $routeExists = Route::has($routeName);
-                                            $targetUrl = $routeExists ? route($routeName) : '#';
+                                        $routeName = 'modules.' . $feature->code;
+                                        $routeExists = Route::has($routeName);
+                                        $targetUrl = $routeExists ? route($routeName) : '#';
 
                                     @endphp
 
                                     <flux:button variant="primary"
-                                        class="w-full !bg-brand-blue hover:!bg-brand-orange !text-white border-0 transition-colors"
-                                        :href="$targetUrl" :disabled="!$routeExists">
+                                                 class="w-full !bg-brand-blue hover:!bg-brand-orange !text-white border-0 transition-colors"
+                                                 :href="$targetUrl" :disabled="!$routeExists">
                                         {{ $routeExists ? __('Open Module') : __('Coming Soon') }}
                                     </flux:button>
                                 @else

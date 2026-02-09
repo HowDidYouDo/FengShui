@@ -6,7 +6,6 @@ use App\Traits\HasMingGua;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Carbon;
 
 class FamilyMember extends Model
@@ -31,18 +30,6 @@ class FamilyMember extends Model
         'life_gua',
         'kua_group',
     ];
-
-    public static function getRelationships(): array
-    {
-        return [
-            self::RELATIONSHIP_PRIMARY_PARTNER => __('Primary Partner'),
-            self::RELATIONSHIP_SECONDARY_PARTNER => __('Secondary Partner'),
-            self::RELATIONSHIP_CHILD => __('Child'),
-            self::RELATIONSHIP_PARENT => __('Parent'),
-            self::RELATIONSHIP_GRANDPARENT => __('Grandparent'),
-            self::RELATIONSHIP_GRANDCHILD => __('Grandchild'),
-        ];
-    }
 
     public function getRelationshipLabel(): string
     {
@@ -79,11 +66,15 @@ class FamilyMember extends Model
         return $labels[$this->relationship];
     }
 
-    protected function casts(): array
+    public static function getRelationships(): array
     {
         return [
-            'birth_place' => 'encrypted',
-            'life_gua' => 'integer',
+            self::RELATIONSHIP_PRIMARY_PARTNER => __('Primary Partner'),
+            self::RELATIONSHIP_SECONDARY_PARTNER => __('Secondary Partner'),
+            self::RELATIONSHIP_CHILD => __('Child'),
+            self::RELATIONSHIP_PARENT => __('Parent'),
+            self::RELATIONSHIP_GRANDPARENT => __('Grandparent'),
+            self::RELATIONSHIP_GRANDCHILD => __('Grandchild'),
         ];
     }
 
@@ -134,5 +125,13 @@ class FamilyMember extends Model
     public function roomAssignments(): HasMany
     {
         return $this->hasMany(RoomAssignment::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'birth_place' => 'encrypted',
+            'life_gua' => 'integer',
+        ];
     }
 }

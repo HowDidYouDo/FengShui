@@ -2,7 +2,8 @@
 
 ## Übersicht
 
-Für Datenbankinhalte, die in mehreren Sprachen angezeigt werden sollen, verwenden wir das **Spatie Laravel Translatable** Package.
+Für Datenbankinhalte, die in mehreren Sprachen angezeigt werden sollen, verwenden wir das **Spatie Laravel Translatable
+** Package.
 
 ## Verwendung
 
@@ -149,6 +150,7 @@ class TranslateFeaturesSeeder extends Seeder
 ```
 
 Ausführen:
+
 ```bash
 php artisan db:seed --class=TranslateFeaturesSeeder
 ```

@@ -19,6 +19,58 @@ class Checkout extends Component
         $this->loadCart();
     }
 
+    protected function loadCart(): void
+    {
+        $cartIds = session('cart', []);
+
+        // Defensively ensure cartIds is always an array.
+        if (!is_array($cartIds)) {
+            $cartIds = [];
+        }
+
+        if (empty($cartIds)) {
+            $this->items = collect();
+            $this->total = 0;
+            // Also, clean up any invalid session data.
+            if (session()->has('cart')) {
+                session()->forget('cart');
+            }
+            return;
+        }
+
+        $user = Auth::user();
+        $ownedUserFeatures = $user->features()->get()->filter(fn($uf) => $uf->isValid());
+        $ownedFeatureIds = $ownedUserFeatures->pluck('feature_id')->toArray();
+
+        // Lade Features basierend auf Cart-IDs
+        $items = Feature::whereIn('id', $cartIds)->get();
+
+        // Filtere Features, die durch andere (gekaufte oder im Warenkorb befindliche) Features inkludiert sind.
+        // Auch hier: Quota-Features dürfen mehrfach vorkommen, solange sie nicht inkludiert sind.
+        $filtered = $items->reject(function ($feature) use ($ownedFeatureIds, $cartIds) {
+            // Wenn es inkludiert wird durch ein anderes Modul, das man hat oder kauft, dann ablehnen.
+            if ($feature->included_by_id && (in_array($feature->included_by_id, $ownedFeatureIds) || in_array($feature->included_by_id, $cartIds))) {
+                return true;
+            }
+
+            // Wenn es kein Quota-Feature ist und man es schon hat, dann ablehnen.
+            if ($feature->default_quota <= 0 && in_array($feature->id, $ownedFeatureIds)) {
+                return true;
+            }
+
+            return false;
+        });
+
+        // Synchronisiere den Warenkorb mit der gefilterten Liste
+        $filteredIds = $filtered->pluck('id')->toArray();
+        if ($filteredIds !== $cartIds) {
+            session(['cart' => $filteredIds]);
+        }
+
+        $this->items = $filtered;
+        $this->total = $this->items->sum('price_netto');
+    }
+
     public function render()
     {
         return view('livewire.shop.checkout');
@@ -83,57 +135,5 @@ class Checkout extends Component
         $this->dispatch('notify', message: __('Purchase successful! Your licenses have been updated.'));
 
         $this->redirectRoute('dashboard');
-    }
-
-    protected function loadCart(): void
-    {
-        $cartIds = session('cart', []);
-
-        // Defensively ensure cartIds is always an array.
-        if (!is_array($cartIds)) {
-            $cartIds = [];
-        }
-
-        if (empty($cartIds)) {
-            $this->items = collect();
-            $this->total = 0;
-            // Also, clean up any invalid session data.
-            if (session()->has('cart')) {
-                session()->forget('cart');
-            }
-            return;
-        }
-
-        $user = Auth::user();
-        $ownedUserFeatures = $user->features()->get()->filter(fn ($uf) => $uf->isValid());
-        $ownedFeatureIds = $ownedUserFeatures->pluck('feature_id')->toArray();
-
-        // Lade Features basierend auf Cart-IDs
-        $items = Feature::whereIn('id', $cartIds)->get();
-
-        // Filtere Features, die durch andere (gekaufte oder im Warenkorb befindliche) Features inkludiert sind.
-        // Auch hier: Quota-Features dürfen mehrfach vorkommen, solange sie nicht inkludiert sind.
-        $filtered = $items->reject(function ($feature) use ($ownedFeatureIds, $cartIds) {
-            // Wenn es inkludiert wird durch ein anderes Modul, das man hat oder kauft, dann ablehnen.
-            if ($feature->included_by_id && (in_array($feature->included_by_id, $ownedFeatureIds) || in_array($feature->included_by_id, $cartIds))) {
-                return true;
-            }
-
-            // Wenn es kein Quota-Feature ist und man es schon hat, dann ablehnen.
-            if ($feature->default_quota <= 0 && in_array($feature->id, $ownedFeatureIds)) {
-                return true;
-            }
-
-            return false;
-        });
-
-        // Synchronisiere den Warenkorb mit der gefilterten Liste
-        $filteredIds = $filtered->pluck('id')->toArray();
-        if ($filteredIds !== $cartIds) {
-            session(['cart' => $filteredIds]);
-        }
-
-        $this->items = $filtered;
-        $this->total = $this->items->sum('price_netto');
     }
 }

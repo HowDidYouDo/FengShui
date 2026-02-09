@@ -121,12 +121,12 @@ new class extends Component {
             <form wire:submit="save" class="space-y-6">
 
                 <!-- Name -->
-                <flux:input wire:model="name" :label="__('Project Name')" required />
+                <flux:input wire:model="name" :label="__('Project Name')" required/>
 
                 <div class="grid grid-cols-2 gap-6">
                     <!-- Year -->
                     <flux:input wire:model="settled_year" type="number" :label="__('Move-In Year (Settled)')"
-                        :placeholder="__('e.g. 2020')" required />
+                                :placeholder="__('e.g. 2020')" required/>
 
                     <!-- Name (verschoben für besseres Layout, oder oben lassen) -->
                 </div>
@@ -134,14 +134,14 @@ new class extends Component {
                 <div
                     class="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-100 dark:border-zinc-700 space-y-4">
                     <h4 class="text-sm font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
-                        <flux:icon.globe-alt class="size-4" /> {{ __('Compass Readings') }}
+                        <flux:icon.globe-alt class="size-4"/> {{ __('Compass Readings') }}
                     </h4>
 
                     <div class="grid grid-cols-2 gap-6">
                         <!-- FACING -->
                         <div class="space-y-1">
                             <flux:input wire:model="facing_direction" type="number" step="0.01"
-                                :label="__('Facing Direction (°)')" placeholder="0.00" required />
+                                        :label="__('Facing Direction (°)')" placeholder="0.00" required/>
                             <p class="text-[10px] text-zinc-400">{{ __('The direction the house faces (Yang side).') }}
                             </p>
                         </div>
@@ -149,7 +149,7 @@ new class extends Component {
                         <!-- VENTILATION -->
                         <div class="space-y-1">
                             <flux:input wire:model="ventilation_direction" type="number" step="0.01"
-                                :label="__('Ventilation Direction (°)')" placeholder="0.00" required />
+                                        :label="__('Ventilation Direction (°)')" placeholder="0.00" required/>
                             <p class="text-[10px] text-zinc-400">{{ __('Main airflow/ventilation direction.') }}</p>
                         </div>
                     </div>
@@ -157,7 +157,7 @@ new class extends Component {
                     @if(auth()->user()->hasFeature('flying_stars'))
                         <div class="pt-4 border-t border-zinc-200 dark:border-zinc-700 space-y-4">
                             <h4 class="text-sm font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
-                                <flux:icon.sparkles class="size-4" /> {{ __('Flying Stars Overrides') }}
+                                <flux:icon.sparkles class="size-4"/> {{ __('Flying Stars Overrides') }}
                             </h4>
 
                             <div class="grid grid-cols-2 gap-6">
@@ -170,18 +170,25 @@ new class extends Component {
 
                                 <flux:select wire:model="special_chart_type" :label="__('Special Chart Type')">
                                     <flux:select.option value="">{{ __('None') }}</flux:select.option>
-                                    <flux:select.option value="Dual Star at Facing">{{ __('Dual Star at Facing') }}</flux:select.option>
-                                    <flux:select.option value="Dual Star at Sitting">{{ __('Dual Star at Sitting') }}</flux:select.option>
-                                    <flux:select.option value="Twin Stars at Door">{{ __('Twin Stars at Door') }}</flux:select.option>
-                                    <flux:select.option value="Reverse Merit Chart">{{ __('Reverse Merit Chart') }}</flux:select.option>
+                                    <flux:select.option
+                                        value="Dual Star at Facing">{{ __('Dual Star at Facing') }}</flux:select.option>
+                                    <flux:select.option
+                                        value="Dual Star at Sitting">{{ __('Dual Star at Sitting') }}</flux:select.option>
+                                    <flux:select.option
+                                        value="Twin Stars at Door">{{ __('Twin Stars at Door') }}</flux:select.option>
+                                    <flux:select.option
+                                        value="Reverse Merit Chart">{{ __('Reverse Merit Chart') }}</flux:select.option>
                                     <flux:select.option value="Sum of Ten">{{ __('Sum of Ten') }}</flux:select.option>
-                                    <flux:select.option value="String of Pearls">{{ __('String of Pearls') }}</flux:select.option>
-                                    <flux:select.option value="Parent String">{{ __('Parent String') }}</flux:select.option>
+                                    <flux:select.option
+                                        value="String of Pearls">{{ __('String of Pearls') }}</flux:select.option>
+                                    <flux:select.option
+                                        value="Parent String">{{ __('Parent String') }}</flux:select.option>
                                 </flux:select>
                             </div>
 
                             <div class="flex items-center gap-2">
-                                <flux:checkbox wire:model="is_replacement_chart" :label="__('Is Replacement Chart (Kong Wang)')" />
+                                <flux:checkbox wire:model="is_replacement_chart"
+                                               :label="__('Is Replacement Chart (Kong Wang)')"/>
                             </div>
                             <p class="text-[10px] text-zinc-500 italic">
                                 {{ __('Note: Facing Mountain and Replacement status are normally auto-calculated from the Facing Direction. Only change these if you want to force a specific chart.') }}

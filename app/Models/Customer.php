@@ -29,14 +29,15 @@ class Customer extends Model
         'is_self_profile',
     ];
 
-    protected function casts(): array
+    protected static function boot()
     {
-        return [
-            'birth_place' => 'encrypted',
-            'billing_street' => 'encrypted',
-            'is_self_profile' => 'boolean',
-            'life_gua' => 'integer',
-        ];
+        parent::boot();
+
+        static::creating(function ($customer) {
+            if (!$customer->user_id && auth()->check()) {
+                $customer->user_id = auth()->id();
+            }
+        });
     }
 
     public function getBirthDateAttribute($value)
@@ -78,22 +79,12 @@ class Customer extends Model
         $this->attributes['birth_date'] = $value ? encrypt($value, false) : null;
     }
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($customer) {
-            if (!$customer->user_id && auth()->check()) {
-                $customer->user_id = auth()->id();
-            }
-        });
-    }
-
-    // Der Consultant, dem dieser Kunde gehört
     public function consultant(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    // Der Consultant, dem dieser Kunde gehört
 
     public function familyMembers(): HasMany
     {
@@ -105,9 +96,20 @@ class Customer extends Model
         return $this->hasMany(Project::class);
     }
 
-    // Raumzuweisungen für den Kunden selbst
     public function roomAssignments(): HasMany
     {
         return $this->hasMany(RoomAssignment::class);
+    }
+
+    // Raumzuweisungen für den Kunden selbst
+
+    protected function casts(): array
+    {
+        return [
+            'birth_place' => 'encrypted',
+            'billing_street' => 'encrypted',
+            'is_self_profile' => 'boolean',
+            'life_gua' => 'integer',
+        ];
     }
 }

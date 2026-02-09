@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\FloorPlan;
-use Illuminate\Http\Request;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class SecureMediaController extends Controller
 {

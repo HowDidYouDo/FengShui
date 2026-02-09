@@ -5,7 +5,8 @@ use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
 use Livewire\WithPagination;
 
-new #[Layout('components.layouts.app')] class extends Component {
+new #[Layout('components.layouts.app')]
+class extends Component {
     use WithPagination;
 
     public ?string $target = null;
@@ -66,14 +67,15 @@ new #[Layout('components.layouts.app')] class extends Component {
 
                 <!-- Create New Client Button (Links to CRM) -->
                 <a href="{{ route('modules.crm') }}"
-                    class="group flex flex-col items-center justify-center min-h-[150px] gap-3 p-6 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-brand-blue hover:bg-brand-blue/5 transition-all text-zinc-400 hover:text-brand-blue">
-                    <flux:icon.plus class="size-8" />
+                   class="group flex flex-col items-center justify-center min-h-[150px] gap-3 p-6 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-brand-blue hover:bg-brand-blue/5 transition-all text-zinc-400 hover:text-brand-blue">
+                    <flux:icon.plus class="size-8"/>
                     <span class="font-medium">{{ __('Add New Client') }}</span>
                 </a>
 
                 @foreach($customers as $customer)
-                    <a href="{{ route('modules.bagua.show', ['customer' => $customer, 'tab' => $target ?? 'analysis']) }}" wire:navigate
-                        class="group relative flex flex-col p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:shadow-md hover:border-brand-blue/30 transition-all">
+                    <a href="{{ route('modules.bagua.show', ['customer' => $customer, 'tab' => $target ?? 'analysis']) }}"
+                       wire:navigate
+                       class="group relative flex flex-col p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:shadow-md hover:border-brand-blue/30 transition-all">
 
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex items-center gap-3">
@@ -98,19 +100,19 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 </div>
                             </div>
                             <flux:icon.chevron-right
-                                class="size-5 text-zinc-300 group-hover:text-brand-blue transition-colors" />
+                                class="size-5 text-zinc-300 group-hover:text-brand-blue transition-colors"/>
                         </div>
 
                         <div
                             class="mt-auto pt-4 border-t border-zinc-100 dark:border-zinc-800/50 text-sm text-zinc-500 space-y-1">
                             @if($customer->birth_date)
                                 <div class="flex items-center gap-2">
-                                    <flux:icon.calendar class="size-4 text-zinc-400" />
+                                    <flux:icon.calendar class="size-4 text-zinc-400"/>
                                     <span>{{ $customer->birth_date->format('d.m.Y') }}</span>
                                 </div>
                             @else
                                 <div class="flex items-center gap-2 text-amber-600 font-medium">
-                                    <flux:icon.exclamation-triangle class="size-4" />
+                                    <flux:icon.exclamation-triangle class="size-4"/>
                                     <span>{{ __('Missing Birth Data') }}</span>
                                 </div>
                             @endif

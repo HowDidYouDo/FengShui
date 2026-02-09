@@ -44,16 +44,6 @@ class Project extends Model
     }
 
     /**
-     * Gibt die aktive Direction zurück (Facing ODER Ventilation)
-     */
-    public function getActiveDirection(): ?float
-    {
-        return $this->use_facing_direction
-            ? $this->facing_direction
-            : $this->ventilation_direction;
-    }
-
-    /**
      * Gibt den Direction-Typ als String zurück
      */
     public function getDirectionType(): string
@@ -68,5 +58,15 @@ class Project extends Model
     {
         $direction = $this->getActiveDirection();
         return $direction !== null && $direction >= 0 && $direction <= 360;
+    }
+
+    /**
+     * Gibt die aktive Direction zurück (Facing ODER Ventilation)
+     */
+    public function getActiveDirection(): ?float
+    {
+        return $this->use_facing_direction
+            ? $this->facing_direction
+            : $this->ventilation_direction;
     }
 }

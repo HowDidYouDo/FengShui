@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Users\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Schema;
 
 class UserForm
@@ -25,8 +24,8 @@ class UserForm
                 TextInput::make('password')
                     ->label(__('Password'))
                     ->password()
-                    ->required(fn (string $context): bool => $context === 'create')
-                    ->dehydrated(fn ($state) => filled($state)),
+                    ->required(fn(string $context): bool => $context === 'create')
+                    ->dehydrated(fn($state) => filled($state)),
                 DateTimePicker::make('two_factor_confirmed_at')
                     ->label(__('Two Factor Confirmed At')),
             ]);

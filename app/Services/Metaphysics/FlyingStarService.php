@@ -47,6 +47,83 @@ class FlyingStarService
     ];
 
     /**
+     * Calculates the full Flying Star Chart.
+     */
+    public function calculateChart(int $period, float $facingDegree, ?string $mountainOverride = null, bool $forceReplacement = false): array
+    {
+        if ($mountainOverride) {
+            $mountainInfo = collect(self::MOUNTAINS)->firstWhere('name', $mountainOverride);
+            if (!$mountainInfo) {
+                $mountainInfo = $this->getMountain($facingDegree);
+            }
+        } else {
+            $mountainInfo = $this->getMountain($facingDegree);
+        }
+
+        // Detect if we technically need replacement
+        $needsReplacement = $this->needsReplacementChart($facingDegree);
+
+        // Use replacement if forced (by user) OR if strictly adhering to needs (optional, usually manual override is preferred)
+        // Here we assume: if $forceReplacement is true, we do it. The user decides.
+        $isReplacement = $forceReplacement;
+
+        $facingMountainGua = $mountainInfo['gua'];
+
+        // Sitting Direction is 180° opposite
+        if ($mountainOverride) {
+            $midDegree = ($mountainInfo['min'] + $mountainInfo['max']) / 2;
+            if ($mountainInfo['min'] > $mountainInfo['max']) { // North wrap
+                $midDegree = ($mountainInfo['min'] + $mountainInfo['max'] + 360) / 2;
+            }
+            $sittingDegree = fmod($midDegree + 180, 360);
+        } else {
+            $sittingDegree = fmod($facingDegree + 180, 360);
+        }
+
+        $sittingMountainInfo = $this->getMountain($sittingDegree);
+        $sittingMountainGua = $sittingMountainInfo['gua'];
+
+        // 1. Base Stars (Period)
+        $baseStars = $this->fly($period);
+
+        // 2. Identify Center Stars
+        $mountainStarInCenter = $baseStars[$sittingMountainGua];
+        $waterStarInCenter = $baseStars[$facingMountainGua];
+
+        // 3. Apply Replacement Logic if active
+        // Determine Sub-Mountain Index (1, 2, or 3) for Sitting and Facing
+        preg_match('/([1-3])/', $sittingMountainInfo['name'], $sMatches);
+        $sittingSubIndex = (int)($sMatches[0] ?? 1);
+
+        preg_match('/([1-3])/', $mountainInfo['name'], $fMatches);
+        $facingSubIndex = (int)($fMatches[0] ?? 1);
+
+        if ($isReplacement) { // Use variable we set earlier
+            $mountainStarInCenter = $this->getReplacementStar($mountainStarInCenter, $sittingSubIndex, $sittingMountainGua);
+            $waterStarInCenter = $this->getReplacementStar($waterStarInCenter, $facingSubIndex, $facingMountainGua);
+        }
+
+        // 4. Fly the Stars
+        // Flight direction depends on the Yin/Yang of the STAR's home palace, mapped to the Original Mountain Direction
+        $mountainDirection = $this->getFlightDirection($mountainStarInCenter, $sittingMountainInfo);
+        $mountainStars = $this->fly($mountainStarInCenter, $mountainDirection);
+
+        $waterDirection = $this->getFlightDirection($waterStarInCenter, $mountainInfo);
+        $waterStars = $this->fly($waterStarInCenter, $waterDirection);
+
+        return [
+            'base' => $baseStars,
+            'mountain' => $mountainStars,
+            'water' => $waterStars,
+            'facing_mountain' => $mountainInfo['name'],
+            'sitting_mountain' => $sittingMountainInfo['name'],
+            'needs_replacement' => $needsReplacement,
+            'mountain_flight_direction' => $mountainDirection ? '+' : '-',
+            'water_flight_direction' => $waterDirection ? '+' : '-',
+        ];
+    }
+
+    /**
      * Finds the mountain for a given degree.
      */
     public function getMountain(float $degree): array
@@ -81,7 +158,7 @@ class FlyingStarService
             // But Void Lines are specifically between the 8 Trigrams, or between Earth/Heaven/Man?
             // Shen's strictly says: 3 degrees left/right of the magnetic needle's line?
             // Simplified: If within 3 degrees of the Sector Boundary.
-            
+
             $distToMin = abs($degree - $m['min']);
             if ($distToMin > 180) $distToMin = 360 - $distToMin;
 
@@ -93,102 +170,6 @@ class FlyingStarService
             }
         }
         return false;
-    }
-
-    /**
-     * Calculates the full Flying Star Chart.
-     */
-    public function calculateChart(int $period, float $facingDegree, ?string $mountainOverride = null, bool $forceReplacement = false): array
-    {
-        if ($mountainOverride) {
-            $mountainInfo = collect(self::MOUNTAINS)->firstWhere('name', $mountainOverride);
-            if (!$mountainInfo) {
-                $mountainInfo = $this->getMountain($facingDegree);
-            }
-        } else {
-            $mountainInfo = $this->getMountain($facingDegree);
-        }
-
-        // Detect if we technically need replacement
-        $needsReplacement = $this->needsReplacementChart($facingDegree);
-        
-        // Use replacement if forced (by user) OR if strictly adhering to needs (optional, usually manual override is preferred)
-        // Here we assume: if $forceReplacement is true, we do it. The user decides.
-        $isReplacement = $forceReplacement; 
-
-        $facingMountainGua = $mountainInfo['gua'];
-
-        // Sitting Direction is 180° opposite
-        if ($mountainOverride) {
-            $midDegree = ($mountainInfo['min'] + $mountainInfo['max']) / 2;
-            if ($mountainInfo['min'] > $mountainInfo['max']) { // North wrap
-                $midDegree = ($mountainInfo['min'] + $mountainInfo['max'] + 360) / 2;
-            }
-            $sittingDegree = fmod($midDegree + 180, 360);
-        } else {
-            $sittingDegree = fmod($facingDegree + 180, 360);
-        }
-
-        $sittingMountainInfo = $this->getMountain($sittingDegree);
-        $sittingMountainGua = $sittingMountainInfo['gua'];
-
-        // 1. Base Stars (Period)
-        $baseStars = $this->fly($period);
-
-        // 2. Identify Center Stars
-        $mountainStarInCenter = $baseStars[$sittingMountainGua];
-        $waterStarInCenter = $baseStars[$facingMountainGua];
-
-        // 3. Apply Replacement Logic if active
-        // Determine Sub-Mountain Index (1, 2, or 3) for Sitting and Facing
-        preg_match('/([1-3])/', $sittingMountainInfo['name'], $sMatches);
-        $sittingSubIndex = (int) ($sMatches[0] ?? 1);
-        
-        preg_match('/([1-3])/', $mountainInfo['name'], $fMatches);
-        $facingSubIndex = (int) ($fMatches[0] ?? 1);
-
-        if ($isReplacement) { // Use variable we set earlier
-            $mountainStarInCenter = $this->getReplacementStar($mountainStarInCenter, $sittingSubIndex, $sittingMountainGua);
-            $waterStarInCenter = $this->getReplacementStar($waterStarInCenter, $facingSubIndex, $facingMountainGua);
-        }
-
-        // 4. Fly the Stars
-        // Flight direction depends on the Yin/Yang of the STAR's home palace, mapped to the Original Mountain Direction
-        $mountainDirection = $this->getFlightDirection($mountainStarInCenter, $sittingMountainInfo);
-        $mountainStars = $this->fly($mountainStarInCenter, $mountainDirection);
-
-        $waterDirection = $this->getFlightDirection($waterStarInCenter, $mountainInfo);
-        $waterStars = $this->fly($waterStarInCenter, $waterDirection);
-
-        return [
-            'base' => $baseStars,
-            'mountain' => $mountainStars,
-            'water' => $waterStars,
-            'facing_mountain' => $mountainInfo['name'],
-            'sitting_mountain' => $sittingMountainInfo['name'],
-            'needs_replacement' => $needsReplacement,
-            'mountain_flight_direction' => $mountainDirection ? '+' : '-',
-            'water_flight_direction' => $waterDirection ? '+' : '-',
-        ];
-    }
-
-    private function getReplacementStar(int $star, int $subIndex, int $palaceGua): int
-    {
-        // Special Case: Star 5
-        // If 5 is the star to be replaced, it adopts the Replacement Map of the Palace it resides in.
-        // But here $palaceGua IS the palace the star resides in (e.g. the Sitting Sector is North (1), so Star 5 in North uses Map 1).
-        $lookupStar = $star;
-        if ($star === 5) {
-            $lookupStar = $palaceGua;
-        }
-
-        // Map 1-index based to 0-index for array if needed, or just use 1,2,3 keys. 
-        // Our map uses array w/ 0-index [0,1,2]. So subIndex 1->0, 2->1, 3->2.
-        $map = self::REPLACEMENT_MAP[$lookupStar] ?? null;
-        
-        if (!$map) return $star; // Should not happen
-
-        return $map[$subIndex - 1] ?? $star;
     }
 
     /**
@@ -212,6 +193,25 @@ class FlyingStarService
         return $chart;
     }
 
+    private function getReplacementStar(int $star, int $subIndex, int $palaceGua): int
+    {
+        // Special Case: Star 5
+        // If 5 is the star to be replaced, it adopts the Replacement Map of the Palace it resides in.
+        // But here $palaceGua IS the palace the star resides in (e.g. the Sitting Sector is North (1), so Star 5 in North uses Map 1).
+        $lookupStar = $star;
+        if ($star === 5) {
+            $lookupStar = $palaceGua;
+        }
+
+        // Map 1-index based to 0-index for array if needed, or just use 1,2,3 keys.
+        // Our map uses array w/ 0-index [0,1,2]. So subIndex 1->0, 2->1, 3->2.
+        $map = self::REPLACEMENT_MAP[$lookupStar] ?? null;
+
+        if (!$map) return $star; // Should not happen
+
+        return $map[$subIndex - 1] ?? $star;
+    }
+
     /**
      * Determines if a star flies forward (+) or backward (-)
      * $star: The star number LANDING in center (The one that is about to fly)
@@ -221,25 +221,25 @@ class FlyingStarService
     {
         // 1. Determine which sub-mountain index it is (1, 2, or 3)
         preg_match('/([1-3])/', $originalMountainInfo['name'], $matches);
-        $subMountain = (int) ($matches[0] ?? 1);
+        $subMountain = (int)($matches[0] ?? 1);
 
         // 2. Find the palace (gua) of the star that landed in the center
         $targetPalace = $star;
-        
+
         // Special Case: Star 5
         // If Star 5 is the one flying, it also takes the polarity of the Palace where it came from?
         // Actually, if we ALREADY replaced 5 with something else (in getReplacementStar), $star is NOT 5 anymore.
         // If $star IS 5 (e.g. no replacement, or replacement result is 5), it behaves as the base palace.
         if ($targetPalace === 5) {
-             return $originalMountainInfo['yin_yang'] === '+';
+            return $originalMountainInfo['yin_yang'] === '+';
         }
 
         // 3. Find the mountain in THAT palace with the same sub-number
         foreach (self::MOUNTAINS as $m) {
             if ($m['gua'] === $targetPalace) {
                 preg_match('/([1-3])/', $m['name'], $targetMatches);
-                $targetSub = (int) ($targetMatches[0] ?? 0);
-                
+                $targetSub = (int)($targetMatches[0] ?? 0);
+
                 if ($targetSub === $subMountain) {
                     return $m['yin_yang'] === '+';
                 }

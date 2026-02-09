@@ -12,20 +12,6 @@ class TwoFactorAuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        if (! Features::canManageTwoFactorAuthentication()) {
-            $this->markTestSkipped('Two-factor authentication is not enabled.');
-        }
-
-        Features::twoFactorAuthentication([
-            'confirm' => true,
-            'confirmPassword' => true,
-        ]);
-    }
-
     public function test_two_factor_settings_page_can_be_rendered(): void
     {
         $user = User::factory()->withoutTwoFactor()->create();
@@ -81,6 +67,20 @@ class TwoFactorAuthenticationTest extends TestCase
             'id' => $user->id,
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
+        ]);
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        if (!Features::canManageTwoFactorAuthentication()) {
+            $this->markTestSkipped('Two-factor authentication is not enabled.');
+        }
+
+        Features::twoFactorAuthentication([
+            'confirm' => true,
+            'confirmPassword' => true,
         ]);
     }
 }

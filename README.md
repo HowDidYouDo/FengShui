@@ -12,7 +12,9 @@ This document outlines the steps to prepare and deploy the FengShui application 
 ## 2. Server Setup
 
 ### Environment Variables
+
 Copy `.env.example` to `.env` and configure the following:
+
 - `APP_KEY`: Generate using `php artisan key:generate`
 - `DB_*`: Set your database credentials
 - `QUEUE_CONNECTION`: Set to `database` or `redis`
@@ -21,7 +23,9 @@ Copy `.env.example` to `.env` and configure the following:
 - `INVOICE_NINJA_*`: Credentials for Invoice Ninja integration
 
 ### File Permissions
+
 Ensure the following directories are writable by the web server:
+
 - `storage`
 - `bootstrap/cache`
 

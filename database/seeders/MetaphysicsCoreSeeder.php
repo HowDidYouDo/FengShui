@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Seeders;
 
 use App\Models\EarthlyBranch;
@@ -13,15 +14,15 @@ class MetaphysicsCoreSeeder extends Seeder
         // 1. Stems
         $stems = [
             ['name_en' => 'Jia', 'name_zh' => '甲', 'yin_yang' => 'yang', 'element' => 'wood'],
-            ['name_en' => 'Yi',  'name_zh' => '乙', 'yin_yang' => 'yin',  'element' => 'wood'],
-            ['name_en' => 'Bing','name_zh' => '丙', 'yin_yang' => 'yang', 'element' => 'fire'],
-            ['name_en' => 'Ding','name_zh' => '丁', 'yin_yang' => 'yin',  'element' => 'fire'],
-            ['name_en' => 'Wu',  'name_zh' => '戊', 'yin_yang' => 'yang', 'element' => 'earth'],
-            ['name_en' => 'Ji',  'name_zh' => '己', 'yin_yang' => 'yin',  'element' => 'earth'],
-            ['name_en' => 'Geng','name_zh' => '庚', 'yin_yang' => 'yang', 'element' => 'metal'],
-            ['name_en' => 'Xin', 'name_zh' => '辛', 'yin_yang' => 'yin',  'element' => 'metal'],
+            ['name_en' => 'Yi', 'name_zh' => '乙', 'yin_yang' => 'yin', 'element' => 'wood'],
+            ['name_en' => 'Bing', 'name_zh' => '丙', 'yin_yang' => 'yang', 'element' => 'fire'],
+            ['name_en' => 'Ding', 'name_zh' => '丁', 'yin_yang' => 'yin', 'element' => 'fire'],
+            ['name_en' => 'Wu', 'name_zh' => '戊', 'yin_yang' => 'yang', 'element' => 'earth'],
+            ['name_en' => 'Ji', 'name_zh' => '己', 'yin_yang' => 'yin', 'element' => 'earth'],
+            ['name_en' => 'Geng', 'name_zh' => '庚', 'yin_yang' => 'yang', 'element' => 'metal'],
+            ['name_en' => 'Xin', 'name_zh' => '辛', 'yin_yang' => 'yin', 'element' => 'metal'],
             ['name_en' => 'Ren', 'name_zh' => '壬', 'yin_yang' => 'yang', 'element' => 'water'],
-            ['name_en' => 'Gui', 'name_zh' => '癸', 'yin_yang' => 'yin',  'element' => 'water'],
+            ['name_en' => 'Gui', 'name_zh' => '癸', 'yin_yang' => 'yin', 'element' => 'water'],
         ];
 
         foreach ($stems as $stem) {
@@ -30,18 +31,18 @@ class MetaphysicsCoreSeeder extends Seeder
 
         // 2. Branches
         $branches = [
-            ['name_en' => 'Zi',   'name_zh' => '子', 'animal_en' => 'Rat',     'yin_yang' => 'yang', 'element' => 'water', 'reference_hour_start' => 23],
-            ['name_en' => 'Chou', 'name_zh' => '丑', 'animal_en' => 'Ox',      'yin_yang' => 'yin',  'element' => 'earth', 'reference_hour_start' => 1],
-            ['name_en' => 'Yin',  'name_zh' => '寅', 'animal_en' => 'Tiger',   'yin_yang' => 'yang', 'element' => 'wood',  'reference_hour_start' => 3],
-            ['name_en' => 'Mao',  'name_zh' => '卯', 'animal_en' => 'Rabbit',  'yin_yang' => 'yin',  'element' => 'wood',  'reference_hour_start' => 5],
-            ['name_en' => 'Chen', 'name_zh' => '辰', 'animal_en' => 'Dragon',  'yin_yang' => 'yang', 'element' => 'earth', 'reference_hour_start' => 7],
-            ['name_en' => 'Si',   'name_zh' => '巳', 'animal_en' => 'Snake',   'yin_yang' => 'yin',  'element' => 'fire',  'reference_hour_start' => 9],
-            ['name_en' => 'Wu',   'name_zh' => '午', 'animal_en' => 'Horse',   'yin_yang' => 'yang', 'element' => 'fire',  'reference_hour_start' => 11],
-            ['name_en' => 'Wei',  'name_zh' => '未', 'animal_en' => 'Goat',    'yin_yang' => 'yin',  'element' => 'earth', 'reference_hour_start' => 13],
-            ['name_en' => 'Shen', 'name_zh' => '申', 'animal_en' => 'Monkey',  'yin_yang' => 'yang', 'element' => 'metal', 'reference_hour_start' => 15],
-            ['name_en' => 'You',  'name_zh' => '酉', 'animal_en' => 'Rooster', 'yin_yang' => 'yin',  'element' => 'metal', 'reference_hour_start' => 17],
-            ['name_en' => 'Xu',   'name_zh' => '戌', 'animal_en' => 'Dog',     'yin_yang' => 'yang', 'element' => 'earth', 'reference_hour_start' => 19],
-            ['name_en' => 'Hai',  'name_zh' => '亥', 'animal_en' => 'Pig',     'yin_yang' => 'yin',  'element' => 'water', 'reference_hour_start' => 21],
+            ['name_en' => 'Zi', 'name_zh' => '子', 'animal_en' => 'Rat', 'yin_yang' => 'yang', 'element' => 'water', 'reference_hour_start' => 23],
+            ['name_en' => 'Chou', 'name_zh' => '丑', 'animal_en' => 'Ox', 'yin_yang' => 'yin', 'element' => 'earth', 'reference_hour_start' => 1],
+            ['name_en' => 'Yin', 'name_zh' => '寅', 'animal_en' => 'Tiger', 'yin_yang' => 'yang', 'element' => 'wood', 'reference_hour_start' => 3],
+            ['name_en' => 'Mao', 'name_zh' => '卯', 'animal_en' => 'Rabbit', 'yin_yang' => 'yin', 'element' => 'wood', 'reference_hour_start' => 5],
+            ['name_en' => 'Chen', 'name_zh' => '辰', 'animal_en' => 'Dragon', 'yin_yang' => 'yang', 'element' => 'earth', 'reference_hour_start' => 7],
+            ['name_en' => 'Si', 'name_zh' => '巳', 'animal_en' => 'Snake', 'yin_yang' => 'yin', 'element' => 'fire', 'reference_hour_start' => 9],
+            ['name_en' => 'Wu', 'name_zh' => '午', 'animal_en' => 'Horse', 'yin_yang' => 'yang', 'element' => 'fire', 'reference_hour_start' => 11],
+            ['name_en' => 'Wei', 'name_zh' => '未', 'animal_en' => 'Goat', 'yin_yang' => 'yin', 'element' => 'earth', 'reference_hour_start' => 13],
+            ['name_en' => 'Shen', 'name_zh' => '申', 'animal_en' => 'Monkey', 'yin_yang' => 'yang', 'element' => 'metal', 'reference_hour_start' => 15],
+            ['name_en' => 'You', 'name_zh' => '酉', 'animal_en' => 'Rooster', 'yin_yang' => 'yin', 'element' => 'metal', 'reference_hour_start' => 17],
+            ['name_en' => 'Xu', 'name_zh' => '戌', 'animal_en' => 'Dog', 'yin_yang' => 'yang', 'element' => 'earth', 'reference_hour_start' => 19],
+            ['name_en' => 'Hai', 'name_zh' => '亥', 'animal_en' => 'Pig', 'yin_yang' => 'yin', 'element' => 'water', 'reference_hour_start' => 21],
         ];
 
         foreach ($branches as $branch) {

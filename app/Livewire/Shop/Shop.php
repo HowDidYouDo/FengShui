@@ -55,7 +55,7 @@ class Shop extends Component
 
         // Wenn dieses Modul bereits durch ein anderes Modul abgedeckt ist (gekauft oder im Warenkorb), dann nicht kaufbar
         $user = Auth::user();
-        $ownedUserFeatures = $user->features()->get()->filter(fn ($uf) => $uf->isValid());
+        $ownedUserFeatures = $user->features()->get()->filter(fn($uf) => $uf->isValid());
         $ownedFeatureIds = $ownedUserFeatures->pluck('feature_id')->toArray();
 
         // Wenn es kein Quota-Feature ist und der User es schon hat, dann nicht kaufbar

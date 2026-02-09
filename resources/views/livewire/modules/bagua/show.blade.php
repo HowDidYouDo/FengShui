@@ -29,7 +29,7 @@ class extends Component {
 
         $this->floorPlans = $this->project ? $this->project->floorPlans : collect();
         if ($this->floorPlans->isNotEmpty()) {
-            $this->selectedFloorPlanId = (string) $this->floorPlans->first()->id;
+            $this->selectedFloorPlanId = (string)$this->floorPlans->first()->id;
         }
 
         if ($tab && in_array($tab, ['analysis', 'map', 'family', 'flying_stars'])) {
@@ -356,15 +356,17 @@ class extends Component {
                                         <!-- Flying Stars Summary (if applicable and authorized) -->
                                         @if($analysis['type'] === 'Main' && auth()->user()->hasFeature('flying_stars') && $this->project?->facing_mountain)
                                             <div class="mt-4 flex flex-wrap gap-2">
-                                                <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold border border-brand-orange/20 bg-brand-orange/5 text-brand-orange uppercase">
-                                                    <flux:icon.sparkles class="size-3" />
+                                                <span
+                                                    class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold border border-brand-orange/20 bg-brand-orange/5 text-brand-orange uppercase">
+                                                    <flux:icon.sparkles class="size-3"/>
                                                     {{ __('Flying Stars') }}: {{ $this->project->facing_mountain }}
                                                     @if($this->project->is_replacement_chart)
                                                         ({{ __('Replacement') }})
                                                     @endif
                                                 </span>
                                                 @if($this->project->special_chart_type)
-                                                    <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold border border-purple-500/20 bg-purple-500/5 text-purple-600 uppercase">
+                                                    <span
+                                                        class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold border border-purple-500/20 bg-purple-500/5 text-purple-600 uppercase">
                                                         {{ $this->project->special_chart_type }}
                                                     </span>
                                                 @endif
@@ -372,7 +374,8 @@ class extends Component {
                                         @endif
 
                                         <!-- Relationship Infos -->
-                                        <div class="mt-4 grid grid-cols-1 {{ $analysis['partner_compatibility'] ? 'sm:grid-cols-2' : '' }} gap-4">
+                                        <div
+                                            class="mt-4 grid grid-cols-1 {{ $analysis['partner_compatibility'] ? 'sm:grid-cols-2' : '' }} gap-4">
                                             <!-- Element Relationship Info -->
                                             <div
                                                 class="p-3 rounded-lg border border-zinc-100 dark:border-zinc-700 {{ $analysis['relationship']['color'] }} dark:bg-opacity-10">
@@ -413,7 +416,8 @@ class extends Component {
                                                         </div>
                                                         <div>
                                                             <h5 class="text-sm font-bold">
-                                                                {{ __('Partner Compatibility') }}: {{ $analysis['partner_compatibility']['label'] }}
+                                                                {{ __('Partner Compatibility') }}
+                                                                : {{ $analysis['partner_compatibility']['label'] }}
                                                             </h5>
                                                             <p class="text-xs opacity-90 mt-0.5 leading-relaxed">
                                                                 {{ $analysis['partner_compatibility']['desc'] }}
@@ -550,7 +554,8 @@ class extends Component {
             @if($tab === 'flying_stars' && auth()->user()->hasFeature('flying_stars'))
                 <div class="space-y-6">
                     @if($this->project)
-                        <div class="bg-white dark:bg-zinc-900 overflow-hidden shadow-sm sm:rounded-xl border border-zinc-200 dark:border-zinc-800">
+                        <div
+                            class="bg-white dark:bg-zinc-900 overflow-hidden shadow-sm sm:rounded-xl border border-zinc-200 dark:border-zinc-800">
                             <div class="p-8">
                                 @include('livewire.modules.bagua.partials.flying-stars-report', [
                                     'project' => $this->project,
@@ -562,10 +567,11 @@ class extends Component {
                             </div>
                         </div>
                     @else
-                        <div class="text-center py-12 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
-                             <flux:icon.home class="size-12 mx-auto text-zinc-300 mb-4"/>
-                             <h3 class="text-lg font-bold text-zinc-900 dark:text-white">{{ __('No Project Found') }}</h3>
-                             <p class="text-zinc-500">{{ __('Please create a project first.') }}</p>
+                        <div
+                            class="text-center py-12 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                            <flux:icon.home class="size-12 mx-auto text-zinc-300 mb-4"/>
+                            <h3 class="text-lg font-bold text-zinc-900 dark:text-white">{{ __('No Project Found') }}</h3>
+                            <p class="text-zinc-500">{{ __('Please create a project first.') }}</p>
                         </div>
                     @endif
                 </div>

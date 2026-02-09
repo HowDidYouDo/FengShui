@@ -3,17 +3,17 @@
 namespace App\Filament\Pages;
 
 use App\Models\InvoiceNinjaConfig;
+use App\Services\InvoiceNinjaService;
 use Filament\Actions\Action;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Actions\Concerns\InteractsWithActions;
-use Filament\Actions\Contracts\HasActions;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Support\Exceptions\Halt;
-use App\Services\InvoiceNinjaService;
 
 class ManageInvoiceNinja extends Page implements HasForms, HasActions
 {
@@ -23,10 +23,8 @@ class ManageInvoiceNinja extends Page implements HasForms, HasActions
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-adjustments-vertical';
     protected static string|null|\UnitEnum $navigationGroup = 'System';
     protected static ?string $navigationLabel = 'Invoice Ninja Setup';
-
-    protected string $view = 'filament.pages.manage-invoice-ninja';
-
     public ?array $data = [];
+    protected string $view = 'filament.pages.manage-invoice-ninja';
 
     public function mount(): void
     {
@@ -68,36 +66,6 @@ class ManageInvoiceNinja extends Page implements HasForms, HasActions
             ->statePath('data');
     }
 
-    protected function getFormActions(): array
-    {
-        return [
-            Action::make('save')
-                ->label(__('Save Configuration'))
-                ->submit('save'),
-            Action::make('testConnection')
-                ->label('Verbindung testen')
-                ->color('gray')
-                ->action(function (InvoiceNinjaService $service) {
-                    $data = $this->form->getState();
-                    $result = $service->testConnection($data);
-
-                    $notification = Notification::make()
-                        ->title($result['message']);
-
-                    if ($result['success']) {
-                        $notification->success()->send();
-                    } else {
-                        $notification->danger()->persistent()->send();
-                    }
-                }),
-        ];
-    }
-
-    protected function getActions(): array
-    {
-        return $this->getFormActions();
-    }
-
     public function save(): void
     {
         try {
@@ -123,5 +91,35 @@ class ManageInvoiceNinja extends Page implements HasForms, HasActions
                 ->send();
             return;
         }
+    }
+
+    protected function getActions(): array
+    {
+        return $this->getFormActions();
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            Action::make('save')
+                ->label(__('Save Configuration'))
+                ->submit('save'),
+            Action::make('testConnection')
+                ->label('Verbindung testen')
+                ->color('gray')
+                ->action(function (InvoiceNinjaService $service) {
+                    $data = $this->form->getState();
+                    $result = $service->testConnection($data);
+
+                    $notification = Notification::make()
+                        ->title($result['message']);
+
+                    if ($result['success']) {
+                        $notification->success()->send();
+                    } else {
+                        $notification->danger()->persistent()->send();
+                    }
+                }),
+        ];
     }
 }

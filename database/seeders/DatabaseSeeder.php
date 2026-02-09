@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Seeders;
 
 use App\Models\Feature;
@@ -6,7 +7,6 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
 class DatabaseSeeder extends Seeder
@@ -44,17 +44,17 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $featBagua = Feature::create([
-           'code' => 'bagua',
-           'name' => 'Bagua Map',
-            'description' => 'The Bagua Map is a Chinese symbol representing the five elements and the eight directions. It is used to understand and control life energy.',          'price_netto' => 0,
-           'is_default' => true,
+            'code' => 'bagua',
+            'name' => 'Bagua Map',
+            'description' => 'The Bagua Map is a Chinese symbol representing the five elements and the eight directions. It is used to understand and control life energy.', 'price_netto' => 0,
+            'is_default' => true,
         ]);
 
         $featFamily = Feature::create([
-           'code' => 'family',
-           'name' => 'Family Tree',
-           'description' => 'Create Bagua for the whole family (max 5 members)',
-           'price_netto' => 2900,
+            'code' => 'family',
+            'name' => 'Family Tree',
+            'description' => 'Create Bagua for the whole family (max 5 members)',
+            'price_netto' => 2900,
         ]);
 
         // 3. Dein Admin-User erstellen

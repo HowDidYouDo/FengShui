@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -33,7 +34,7 @@ class UserFeature extends Model
     // Hilfsmethode: Ist das Feature noch gültig?
     public function isValid(): bool
     {
-        if (! $this->active) {
+        if (!$this->active) {
             return false;
         }
 

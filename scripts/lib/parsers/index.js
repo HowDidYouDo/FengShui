@@ -1,36 +1,36 @@
 /**
  * Parser Registry
- * 
+ *
  * Central registry for all framework-specific parsers.
  * Provides automatic parser selection based on file type.
- * 
+ *
  * Supported Frameworks:
  * - React, Next.js, Gatsby, Remix (JSX/TSX)
  * - Vue 2/3, Nuxt 2/3, Quasar (Vue SFC)
  * - Laravel, Inertia, Livewire (Blade)
  * - Svelte, SvelteKit (Svelte)
  * - Python, Go, C#, Java, Ruby, PHP, Rust, Swift, Kotlin (Generic)
- * 
+ *
  * Adding a new parser:
  * 1. Create a new parser class extending BaseParser
  * 2. Implement getExtensions(), getName(), and parse() methods
  * 3. Register it in the PARSERS array below
  */
 
-const { BaseParser } = require('./baseParser');
-const { JsxParser } = require('./jsxParser');
-const { VueParser } = require('./vueParser');
-const { BladeParser } = require('./bladeParser');
-const { SvelteParser } = require('./svelteParser');
-const { GenericParser } = require('./genericParser');
+const {BaseParser} = require('./baseParser');
+const {JsxParser} = require('./jsxParser');
+const {VueParser} = require('./vueParser');
+const {BladeParser} = require('./bladeParser');
+const {SvelteParser} = require('./svelteParser');
+const {GenericParser} = require('./genericParser');
 
 // Registered parsers in priority order
 const PARSERS = [
-  BladeParser,    // Must come before generic PHP
-  VueParser,
-  SvelteParser,
-  JsxParser,      // Handles JS/TS/JSX/TSX
-  GenericParser,  // Fallback for other languages
+    BladeParser,    // Must come before generic PHP
+    VueParser,
+    SvelteParser,
+    JsxParser,      // Handles JS/TS/JSX/TSX
+    GenericParser,  // Fallback for other languages
 ];
 
 /**
@@ -39,15 +39,15 @@ const PARSERS = [
  * @returns {BaseParser|null} - Parser instance or null if no parser found
  */
 function getParserForFile(filePath) {
-  if (!filePath) return null;
+    if (!filePath) return null;
 
-  for (const ParserClass of PARSERS) {
-    if (ParserClass.canHandle(filePath)) {
-      return new ParserClass();
+    for (const ParserClass of PARSERS) {
+        if (ParserClass.canHandle(filePath)) {
+            return new ParserClass();
+        }
     }
-  }
 
-  return null;
+    return null;
 }
 
 /**
@@ -55,7 +55,7 @@ function getParserForFile(filePath) {
  * @returns {Array} - Array of parser classes
  */
 function getAllParsers() {
-  return [...PARSERS];
+    return [...PARSERS];
 }
 
 /**
@@ -64,8 +64,8 @@ function getAllParsers() {
  * @returns {BaseParser|null}
  */
 function getParserByName(name) {
-  const ParserClass = PARSERS.find(p => p.getName() === name);
-  return ParserClass ? new ParserClass() : null;
+    const ParserClass = PARSERS.find(p => p.getName() === name);
+    return ParserClass ? new ParserClass() : null;
 }
 
 /**
@@ -73,13 +73,13 @@ function getParserByName(name) {
  * @returns {string[]}
  */
 function getSupportedExtensions() {
-  const extensions = new Set();
-  for (const ParserClass of PARSERS) {
-    for (const ext of ParserClass.getExtensions()) {
-      extensions.add(ext);
+    const extensions = new Set();
+    for (const ParserClass of PARSERS) {
+        for (const ext of ParserClass.getExtensions()) {
+            extensions.add(ext);
+        }
     }
-  }
-  return Array.from(extensions);
+    return Array.from(extensions);
 }
 
 /**
@@ -88,7 +88,7 @@ function getSupportedExtensions() {
  * @returns {boolean}
  */
 function isSupported(filePath) {
-  return getParserForFile(filePath) !== null;
+    return getParserForFile(filePath) !== null;
 }
 
 /**
@@ -99,16 +99,16 @@ function isSupported(filePath) {
  * @returns {Object} - Parser result
  */
 function parseFile(content, filePath, options = {}) {
-  const parser = getParserForFile(filePath);
-  if (!parser) {
-    return {
-      items: [],
-      stats: { processed: 0, extracted: 0, errors: 1 },
-      errors: [`No parser available for file: ${filePath}`],
-    };
-  }
+    const parser = getParserForFile(filePath);
+    if (!parser) {
+        return {
+            items: [],
+            stats: {processed: 0, extracted: 0, errors: 1},
+            errors: [`No parser available for file: ${filePath}`],
+        };
+    }
 
-  return parser.parse(content, { ...options, filePath });
+    return parser.parse(content, {...options, filePath});
 }
 
 /**
@@ -117,18 +117,18 @@ function parseFile(content, filePath, options = {}) {
  * @param {number} [priority] - Priority (lower = higher priority)
  */
 function registerParser(ParserClass, priority = PARSERS.length) {
-  if (!ParserClass || typeof ParserClass.canHandle !== 'function') {
-    throw new Error('Invalid parser class');
-  }
-  
-  // Remove if already registered
-  const existingIndex = PARSERS.findIndex(p => p.getName() === ParserClass.getName());
-  if (existingIndex !== -1) {
-    PARSERS.splice(existingIndex, 1);
-  }
-  
-  // Insert at priority position
-  PARSERS.splice(Math.min(priority, PARSERS.length), 0, ParserClass);
+    if (!ParserClass || typeof ParserClass.canHandle !== 'function') {
+        throw new Error('Invalid parser class');
+    }
+
+    // Remove if already registered
+    const existingIndex = PARSERS.findIndex(p => p.getName() === ParserClass.getName());
+    if (existingIndex !== -1) {
+        PARSERS.splice(existingIndex, 1);
+    }
+
+    // Insert at priority position
+    PARSERS.splice(Math.min(priority, PARSERS.length), 0, ParserClass);
 }
 
 /**
@@ -136,28 +136,28 @@ function registerParser(ParserClass, priority = PARSERS.length) {
  * @returns {Array<{name: string, extensions: string[]}>}
  */
 function getFrameworkInfo() {
-  return PARSERS.map(ParserClass => ({
-    name: ParserClass.getName(),
-    extensions: ParserClass.getExtensions(),
-  }));
+    return PARSERS.map(ParserClass => ({
+        name: ParserClass.getName(),
+        extensions: ParserClass.getExtensions(),
+    }));
 }
 
 module.exports = {
-  // Parser classes
-  BaseParser,
-  JsxParser,
-  VueParser,
-  BladeParser,
-  SvelteParser,
-  GenericParser,
-  
-  // Registry functions
-  getParserForFile,
-  getAllParsers,
-  getParserByName,
-  getSupportedExtensions,
-  isSupported,
-  parseFile,
-  registerParser,
-  getFrameworkInfo,
+    // Parser classes
+    BaseParser,
+    JsxParser,
+    VueParser,
+    BladeParser,
+    SvelteParser,
+    GenericParser,
+
+    // Registry functions
+    getParserForFile,
+    getAllParsers,
+    getParserByName,
+    getSupportedExtensions,
+    isSupported,
+    parseFile,
+    registerParser,
+    getFrameworkInfo,
 };

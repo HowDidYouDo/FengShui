@@ -12,7 +12,7 @@
         </div>
 
         <!-- Session Status -->
-        <x-auth-session-status class="text-center" :status="session('status')" />
+        <x-auth-session-status class="text-center" :status="session('status')"/>
 
         <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
             @csrf
@@ -42,7 +42,9 @@
                 />
 
                 @if (Route::has('password.request'))
-                    <flux:link class="absolute top-0 text-sm end-0 !text-brand-blue hover:!text-brand-orange transition-colors" :href="route('password.request')" wire:navigate>
+                    <flux:link
+                        class="absolute top-0 text-sm end-0 !text-brand-blue hover:!text-brand-orange transition-colors"
+                        :href="route('password.request')" wire:navigate>
                         {{ __('Forgot your password?') }}
                     </flux:link>
                 @endif
@@ -58,7 +60,9 @@
 
             <div class="flex items-center justify-end">
                 <!-- Durch die CSS Änderung ist dieser Button jetzt automatisch Brand-Orange -->
-                <flux:button variant="primary" type="submit" class="w-full font-medium shadow-md shadow-orange-200/50 dark:shadow-none" data-test="login-button">
+                <flux:button variant="primary" type="submit"
+                             class="w-full font-medium shadow-md shadow-orange-200/50 dark:shadow-none"
+                             data-test="login-button">
                     {{ __('Log in') }}
                 </flux:button>
             </div>
@@ -67,7 +71,8 @@
         @if (Route::has('register'))
             <div class="space-x-1 text-sm text-center rtl:space-x-reverse text-zinc-600 dark:text-zinc-400">
                 <span>{{ __('Don\'t have an account?') }}</span>
-                <flux:link :href="route('register')" wire:navigate class="!text-brand-blue hover:!text-brand-orange transition-colors font-medium">
+                <flux:link :href="route('register')" wire:navigate
+                           class="!text-brand-blue hover:!text-brand-orange transition-colors font-medium">
                     {{ __('Sign up') }}
                 </flux:link>
             </div>

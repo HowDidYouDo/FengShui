@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Modules\Crm;
 
-use App\Models\Customer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Validate;
@@ -98,7 +97,7 @@ class Index extends Component
         $user = Auth::user();
 
         // Quota Check
-        if (! $user->hasAvailableQuota('crm', $user->customers()->count())) {
+        if (!$user->hasAvailableQuota('crm', $user->customers()->count())) {
             $this->dispatch('notify', message: __('Quota exceeded! Please purchase additional licenses in the shop.'), type: 'error');
             return;
         }
@@ -132,6 +131,30 @@ class Index extends Component
     }
 
     // Edit Customer
+
+    private function resetForm(): void
+    {
+        $this->reset([
+            'editingCustomerId',
+            'name',
+            'email',
+            'notes',
+            'birth_date',
+            'birth_time',
+            'birth_place',
+            'gender',
+            'billing_street',
+            'billing_zip',
+            'billing_city',
+            'billing_country',
+            'is_self_profile',
+        ]);
+
+        $this->gender = 'm'; // Reset to default
+    }
+
+    // Update Customer
+
     public function editCustomer(int $customerId): void
     {
         $customer = Auth::user()->customers()->findOrFail($customerId);
@@ -158,7 +181,8 @@ class Index extends Component
         $this->showEditModal = true;
     }
 
-    // Update Customer
+    // Delete Customer
+
     public function updateCustomer(): void
     {
         $this->validate();
@@ -171,7 +195,7 @@ class Index extends Component
         }
 
         // Check for existing self profile if trying to set this one as self
-        if ($this->is_self_profile && ! $customer->is_self_profile && Auth::user()->customers()->where('is_self_profile', true)->exists()) {
+        if ($this->is_self_profile && !$customer->is_self_profile && Auth::user()->customers()->where('is_self_profile', true)->exists()) {
             $this->addError('is_self_profile', __('You already have a self profile.'));
             return;
         }
@@ -197,7 +221,8 @@ class Index extends Component
         $this->dispatch('notify', message: __('Client updated successfully!'));
     }
 
-    // Delete Customer
+    // Close Edit Modal
+
     public function deleteCustomer(int $customerId): void
     {
         $customer = Auth::user()->customers()->findOrFail($customerId);
@@ -218,36 +243,16 @@ class Index extends Component
         $this->dispatch('notify', message: __('Client deleted successfully!'));
     }
 
-    // Close Edit Modal
+    // Reset Form
+
     public function closeEditModal(): void
     {
         $this->resetForm();
         $this->showEditModal = false;
     }
 
-    // Reset Form
-    private function resetForm(): void
-    {
-        $this->reset([
-            'editingCustomerId',
-            'name',
-            'email',
-            'notes',
-            'birth_date',
-            'birth_time',
-            'birth_place',
-            'gender',
-            'billing_street',
-            'billing_zip',
-            'billing_city',
-            'billing_country',
-            'is_self_profile',
-        ]);
-
-        $this->gender = 'm'; // Reset to default
-    }
-
     // Render
+
     public function render(): View
     {
         $query = Auth::user()->customers()

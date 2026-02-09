@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -9,6 +10,9 @@ class Feature extends Model
 {
     use HasTranslations;
 
+    public $translatable = ['name', 'description'];
+
+    // Definiere welche Felder übersetzbar sind
     protected $fillable = [
         'code',
         'name',
@@ -24,10 +28,6 @@ class Feature extends Model
         'ninja_id',
         'included_by_id',
     ];
-
-    // Definiere welche Felder übersetzbar sind
-    public $translatable = ['name', 'description'];
-
     protected $casts = [
         'active' => 'boolean',
         'is_default' => 'boolean',

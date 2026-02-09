@@ -66,7 +66,7 @@ class AnalyzeFloorPlanJob implements ShouldQueue
 
             // 4. Der eigentliche Request
             $response = Http::timeout(60) // 60s Timeout für große Bilder
-                ->when($apiToken, fn($h) => $h->withToken($apiToken))
+            ->when($apiToken, fn($h) => $h->withToken($apiToken))
                 ->attach(
                     'file', // Feldname muss zur FastAPI passen (def 'file')
                     file_get_contents($imagePath),

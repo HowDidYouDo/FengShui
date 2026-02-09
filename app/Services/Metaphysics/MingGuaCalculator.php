@@ -4,7 +4,6 @@ namespace App\Services\Metaphysics;
 
 use App\Models\BaguaNote;
 use App\Models\FloorPlan;
-use App\Models\Project;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
@@ -89,15 +88,6 @@ class MingGuaCalculator
         return $gua;
     }
 
-    private function crossSumRecursive(int $n): int
-    {
-        // 1986 -> 86 -> 8+6=14 -> 1+4=5
-        while ($n > 9) {
-            $n = array_sum(str_split((string)$n));
-        }
-        return $n;
-    }
-
     private function crossSum(int $zahl): int
     {
         // Konvertiere die Zahl in einen String
@@ -118,95 +108,13 @@ class MingGuaCalculator
         return $quersumme;
     }
 
-    /**
-     * Returns attributes (element, group, directions) for a given Gua number.
-     */
-    public function getAttributes(int $gua): array
+    private function crossSumRecursive(int $n): int
     {
-        // Mapping of the 8 Trigrams (Gua)
-        // Format: [Element, Group (East/West), Best Direction (Sheng Qi), ... ]
-
-        // Definition of Directions for readability
-        // Good: Sheng Qi (Success), Tian Yi (Health), Yan Nian (Relationships), Fu Wei (Stability)
-        // Bad: Jue Ming (Total Loss), Wu Gui (Five Ghosts), Liu Sha (Six Killings), Huo Hai (Mishaps)
-
-        $data = [
-            1 => [
-                'name' => __('Kan (Water)'),
-                'element' => 'Water',
-                'group' => 'East',
-                'colors' => ['text-blue-600', 'bg-blue-100'],
-                'good_directions' => ['SE' => __('Sheng Qi (Success)'), 'E' => __('Tian Yi (Health)'), 'S' => __('Yan Nian (Love)'), 'N' => __('Fu Wei (Stability)')],
-                'bad_directions' => ['SW' => __('Jue Ming'), 'NE' => __('Wu Gui'), 'NW' => __('Liu Sha'), 'W' => __('Huo Hai')]
-            ],
-            2 => [
-                'name' => __('Kun (Earth)'),
-                'element' => 'Earth',
-                'group' => 'West',
-                'colors' => ['text-amber-700', 'bg-amber-100'],
-                'good_directions' => ['NE' => __('Sheng Qi (Success)'), 'W' => __('Tian Yi (Health)'), 'NW' => __('Yan Nian (Love)'), 'SW' => __('Fu Wei (Stability)')],
-                'bad_directions' => ['N' => __('Jue Ming'), 'SE' => __('Wu Gui'), 'S' => __('Liu Sha'), 'E' => __('Huo Hai')]
-            ],
-            3 => [
-                'name' => __('Zhen (Wood)'),
-                'element' => 'Wood',
-                'group' => 'East',
-                'colors' => ['text-green-600', 'bg-green-100'],
-                'good_directions' => ['S' => __('Sheng Qi (Success)'), 'N' => __('Tian Yi (Health)'), 'SE' => __('Yan Nian (Love)'), 'E' => __('Fu Wei (Stability)')],
-                'bad_directions' => ['W' => __('Jue Ming'), 'NW' => __('Wu Gui'), 'NE' => __('Liu Sha'), 'SW' => __('Huo Hai')]
-            ],
-            4 => [
-                'name' => __('Xun (Wood)'),
-                'element' => 'Wood',
-                'group' => 'East',
-                'colors' => ['text-emerald-600', 'bg-emerald-100'],
-                'good_directions' => ['N' => __('Sheng Qi (Success)'), 'S' => __('Tian Yi (Health)'), 'E' => __('Yan Nian (Love)'), 'SE' => __('Fu Wei (Stability)')],
-                'bad_directions' => ['NE' => __('Jue Ming'), 'SW' => __('Wu Gui'), 'W' => __('Liu Sha'), 'NW' => __('Huo Hai')]
-            ],
-            // Gua 5 doesn't exist for people (converted to 2 or 8), fallback to 2
-            5 => [ /* Same as Gua 2 */
-                'name' => __('Kun (Earth)'),
-                'element' => 'Earth',
-                'group' => 'West',
-                'colors' => ['text-amber-700', 'bg-amber-100'],
-                'good_directions' => ['NE' => __('Sheng Qi (Success)'), 'W' => __('Tian Yi (Health)'), 'NW' => __('Yan Nian (Love)'), 'SW' => __('Fu Wei (Stability)')],
-                'bad_directions' => ['N' => __('Jue Ming'), 'SE' => __('Wu Gui'), 'S' => __('Liu Sha'), 'E' => __('Huo Hai')]
-            ],
-            6 => [
-                'name' => __('Qian (Metal)'),
-                'element' => 'Metal',
-                'group' => 'West',
-                'colors' => ['text-zinc-500', 'bg-zinc-100'],
-                'good_directions' => ['W' => __('Sheng Qi (Success)'), 'NE' => __('Tian Yi (Health)'), 'SW' => __('Yan Nian (Love)'), 'NW' => __('Fu Wei (Stability)')],
-                'bad_directions' => ['S' => __('Jue Ming'), 'E' => __('Wu Gui'), 'SE' => __('Liu Sha'), 'N' => __('Huo Hai')]
-            ],
-            7 => [
-                'name' => __('Dui (Metal)'),
-                'element' => 'Metal',
-                'group' => 'West',
-                'colors' => ['text-zinc-500', 'bg-zinc-100'],
-                'good_directions' => ['NW' => __('Sheng Qi (Success)'), 'SW' => __('Tian Yi (Health)'), 'NE' => __('Yan Nian (Love)'), 'W' => __('Fu Wei (Stability)')],
-                'bad_directions' => ['E' => __('Jue Ming'), 'S' => __('Wu Gui'), 'N' => __('Liu Sha'), 'SE' => __('Huo Hai')]
-            ],
-            8 => [
-                'name' => __('Gen (Earth)'),
-                'element' => 'Earth',
-                'group' => 'West',
-                'colors' => ['text-amber-700', 'bg-amber-100'],
-                'good_directions' => ['SW' => __('Sheng Qi (Success)'), 'NW' => __('Tian Yi (Health)'), 'W' => __('Yan Nian (Love)'), 'NE' => __('Fu Wei (Stability)')],
-                'bad_directions' => ['SE' => __('Jue Ming'), 'N' => __('Wu Gui'), 'E' => __('Liu Sha'), 'S' => __('Huo Hai')]
-            ],
-            9 => [
-                'name' => __('Li (Fire)'),
-                'element' => 'Fire',
-                'group' => 'East',
-                'colors' => ['text-red-600', 'bg-red-100'],
-                'good_directions' => ['E' => __('Sheng Qi (Success)'), 'SE' => __('Tian Yi (Health)'), 'N' => __('Yan Nian (Love)'), 'S' => __('Fu Wei (Stability)')],
-                'bad_directions' => ['NW' => __('Jue Ming'), 'W' => __('Wu Gui'), 'SW' => __('Liu Sha'), 'NE' => __('Huo Hai')]
-            ],
-        ];
-
-        return $data[$gua] ?? $data[2];
+        // 1986 -> 86 -> 8+6=14 -> 1+4=5
+        while ($n > 9) {
+            $n = array_sum(str_split((string)$n));
+        }
+        return $n;
     }
 
     /**
@@ -308,6 +216,97 @@ class MingGuaCalculator
     }
 
     /**
+     * Returns attributes (element, group, directions) for a given Gua number.
+     */
+    public function getAttributes(int $gua): array
+    {
+        // Mapping of the 8 Trigrams (Gua)
+        // Format: [Element, Group (East/West), Best Direction (Sheng Qi), ... ]
+
+        // Definition of Directions for readability
+        // Good: Sheng Qi (Success), Tian Yi (Health), Yan Nian (Relationships), Fu Wei (Stability)
+        // Bad: Jue Ming (Total Loss), Wu Gui (Five Ghosts), Liu Sha (Six Killings), Huo Hai (Mishaps)
+
+        $data = [
+            1 => [
+                'name' => __('Kan (Water)'),
+                'element' => 'Water',
+                'group' => 'East',
+                'colors' => ['text-blue-600', 'bg-blue-100'],
+                'good_directions' => ['SE' => __('Sheng Qi (Success)'), 'E' => __('Tian Yi (Health)'), 'S' => __('Yan Nian (Love)'), 'N' => __('Fu Wei (Stability)')],
+                'bad_directions' => ['SW' => __('Jue Ming'), 'NE' => __('Wu Gui'), 'NW' => __('Liu Sha'), 'W' => __('Huo Hai')]
+            ],
+            2 => [
+                'name' => __('Kun (Earth)'),
+                'element' => 'Earth',
+                'group' => 'West',
+                'colors' => ['text-amber-700', 'bg-amber-100'],
+                'good_directions' => ['NE' => __('Sheng Qi (Success)'), 'W' => __('Tian Yi (Health)'), 'NW' => __('Yan Nian (Love)'), 'SW' => __('Fu Wei (Stability)')],
+                'bad_directions' => ['N' => __('Jue Ming'), 'SE' => __('Wu Gui'), 'S' => __('Liu Sha'), 'E' => __('Huo Hai')]
+            ],
+            3 => [
+                'name' => __('Zhen (Wood)'),
+                'element' => 'Wood',
+                'group' => 'East',
+                'colors' => ['text-green-600', 'bg-green-100'],
+                'good_directions' => ['S' => __('Sheng Qi (Success)'), 'N' => __('Tian Yi (Health)'), 'SE' => __('Yan Nian (Love)'), 'E' => __('Fu Wei (Stability)')],
+                'bad_directions' => ['W' => __('Jue Ming'), 'NW' => __('Wu Gui'), 'NE' => __('Liu Sha'), 'SW' => __('Huo Hai')]
+            ],
+            4 => [
+                'name' => __('Xun (Wood)'),
+                'element' => 'Wood',
+                'group' => 'East',
+                'colors' => ['text-emerald-600', 'bg-emerald-100'],
+                'good_directions' => ['N' => __('Sheng Qi (Success)'), 'S' => __('Tian Yi (Health)'), 'E' => __('Yan Nian (Love)'), 'SE' => __('Fu Wei (Stability)')],
+                'bad_directions' => ['NE' => __('Jue Ming'), 'SW' => __('Wu Gui'), 'W' => __('Liu Sha'), 'NW' => __('Huo Hai')]
+            ],
+            // Gua 5 doesn't exist for people (converted to 2 or 8), fallback to 2
+            5 => [ /* Same as Gua 2 */
+                'name' => __('Kun (Earth)'),
+                'element' => 'Earth',
+                'group' => 'West',
+                'colors' => ['text-amber-700', 'bg-amber-100'],
+                'good_directions' => ['NE' => __('Sheng Qi (Success)'), 'W' => __('Tian Yi (Health)'), 'NW' => __('Yan Nian (Love)'), 'SW' => __('Fu Wei (Stability)')],
+                'bad_directions' => ['N' => __('Jue Ming'), 'SE' => __('Wu Gui'), 'S' => __('Liu Sha'), 'E' => __('Huo Hai')]
+            ],
+            6 => [
+                'name' => __('Qian (Metal)'),
+                'element' => 'Metal',
+                'group' => 'West',
+                'colors' => ['text-zinc-500', 'bg-zinc-100'],
+                'good_directions' => ['W' => __('Sheng Qi (Success)'), 'NE' => __('Tian Yi (Health)'), 'SW' => __('Yan Nian (Love)'), 'NW' => __('Fu Wei (Stability)')],
+                'bad_directions' => ['S' => __('Jue Ming'), 'E' => __('Wu Gui'), 'SE' => __('Liu Sha'), 'N' => __('Huo Hai')]
+            ],
+            7 => [
+                'name' => __('Dui (Metal)'),
+                'element' => 'Metal',
+                'group' => 'West',
+                'colors' => ['text-zinc-500', 'bg-zinc-100'],
+                'good_directions' => ['NW' => __('Sheng Qi (Success)'), 'SW' => __('Tian Yi (Health)'), 'NE' => __('Yan Nian (Love)'), 'W' => __('Fu Wei (Stability)')],
+                'bad_directions' => ['E' => __('Jue Ming'), 'S' => __('Wu Gui'), 'N' => __('Liu Sha'), 'SE' => __('Huo Hai')]
+            ],
+            8 => [
+                'name' => __('Gen (Earth)'),
+                'element' => 'Earth',
+                'group' => 'West',
+                'colors' => ['text-amber-700', 'bg-amber-100'],
+                'good_directions' => ['SW' => __('Sheng Qi (Success)'), 'NW' => __('Tian Yi (Health)'), 'W' => __('Yan Nian (Love)'), 'NE' => __('Fu Wei (Stability)')],
+                'bad_directions' => ['SE' => __('Jue Ming'), 'N' => __('Wu Gui'), 'E' => __('Liu Sha'), 'S' => __('Huo Hai')]
+            ],
+            9 => [
+                'name' => __('Li (Fire)'),
+                'element' => 'Fire',
+                'group' => 'East',
+                'colors' => ['text-red-600', 'bg-red-100'],
+                'good_directions' => ['E' => __('Sheng Qi (Success)'), 'SE' => __('Tian Yi (Health)'), 'N' => __('Yan Nian (Love)'), 'S' => __('Fu Wei (Stability)')],
+                'bad_directions' => ['NW' => __('Jue Ming'), 'W' => __('Wu Gui'), 'SW' => __('Liu Sha'), 'NE' => __('Huo Hai')]
+            ],
+        ];
+
+        return $data[$gua] ?? $data[2];
+    }
+
+    /**
      * Analysiert die Kompatibilität von fliegenden Sternen mit dem Life Gua einer Person.
      */
     public function analyzeFlyingStarCompatibility(int $lifeGua, int $mountainStar, int $waterStar): array
@@ -346,6 +345,90 @@ class MingGuaCalculator
                 'label' => $waterRel['label'] ?? ''
             ]
         ];
+    }
+
+    /**
+     * Vergleicht zwei Elemente (Gua vs. Year) und liefert die Beziehung.
+     * Wir betrachten das Gua als "Selbst" und das Jahr als "Basis/Wurzel".
+     * Frage: Wie wirkt das Jahr auf das Gua?
+     */
+    public function analyzeElementRelationship(string $guaElement, string $yearElement): array
+    {
+        // Zyklus: Wood -> Fire -> Earth -> Metal -> Water -> Wood
+        $cycle = [__('Wood'), __('Fire'), __('Earth'), __('Metal'), __('Water')];
+
+        $g = __(ucfirst($guaElement));
+        $y = __(ucfirst($yearElement));
+
+        if ($g === $y) {
+            return [
+                'type' => __('Same'),
+                'quality' => __('Good'),
+                'label' => __('Harmonious'),
+                'desc' => __('Your birth year supports your Life Gua directly. You have a strong energetic foundation.'),
+                'color' => 'text-blue-600 bg-blue-50'
+            ];
+        }
+
+        // Find index
+        $gIndex = array_search($g, $cycle);
+        $yIndex = array_search($y, $cycle);
+
+        // Distanz im Zyklus berechnen
+        // 1 Schritt vorwärts = Erzeugend (Mutter -> Kind)
+        // 2 Schritte vorwärts = Kontrollierend
+
+        // Wir prüfen: Was macht Y (Jahr) mit G (Gua)?
+
+        // Case 1: Jahr nährt Gua (Y -> G)
+        // Wenn G der Nachfolger von Y ist.
+        if (($yIndex + 1) % 5 === $gIndex) {
+            return [
+                'type' => __('Resource'),
+                'quality' => __('Excellent'),
+                'label' => __('Nourishing'),
+                'desc' => __('Your birth year nourishes your Life Gua (Resource). This indicates natural support and good vitality.'),
+                'color' => 'text-green-600 bg-green-50'
+            ];
+        }
+
+        // Case 2: Gua nährt Jahr (G -> Y)
+        // Das Jahr "saugt" am Gua (Output).
+        if (($gIndex + 1) % 5 === $yIndex) {
+            return [
+                'type' => __('Output'),
+                'quality' => __('Neutral'),
+                'label' => __('Draining'),
+                'desc' => __('Your Life Gua feeds your birth year. You are generous, but may tire easily. Watch your energy levels.'),
+                'color' => 'text-amber-600 bg-amber-50'
+            ];
+        }
+
+        // Case 3: Jahr kontrolliert Gua (Y -x-> G)
+        // Wenn Y zwei Schritte vor G ist (oder G drei Schritte nach Y).
+        if (($yIndex + 2) % 5 === $gIndex) {
+            return [
+                'type' => __('Control'),
+                'quality' => __('Challenging'),
+                'label' => __('Controlling'),
+                'desc' => __('Your birth year controls your Life Gua. You may face internal pressure or high expectations. Discipline helps you.'),
+                'color' => 'text-red-600 bg-red-50'
+            ];
+        }
+
+        // Case 4: Gua kontrolliert Jahr (G -x-> Y)
+        // Wenn G zwei Schritte vor Y ist.
+        if (($gIndex + 2) % 5 === $yIndex) {
+            return [
+                'type' => __('Wealth'),
+                'quality' => __('Mixed'),
+                'label' => __('Dominating'),
+                'desc' => __('Your Life Gua controls your birth year. You strive for control and achievement, but this requires effort.'),
+                'color' => 'text-purple-600 bg-purple-50'
+            ];
+        }
+
+        return []; // Should not happen
     }
 
     /**
@@ -434,90 +517,6 @@ class MingGuaCalculator
     }
 
     /**
-     * Vergleicht zwei Elemente (Gua vs. Year) und liefert die Beziehung.
-     * Wir betrachten das Gua als "Selbst" und das Jahr als "Basis/Wurzel".
-     * Frage: Wie wirkt das Jahr auf das Gua?
-     */
-    public function analyzeElementRelationship(string $guaElement, string $yearElement): array
-    {
-        // Zyklus: Wood -> Fire -> Earth -> Metal -> Water -> Wood
-        $cycle = [__('Wood'), __('Fire'), __('Earth'), __('Metal'), __('Water')];
-
-        $g = __(ucfirst($guaElement));
-        $y = __(ucfirst($yearElement));
-
-        if ($g === $y) {
-            return [
-                'type' => __('Same'),
-                'quality' => __('Good'),
-                'label' => __('Harmonious'),
-                'desc' => __('Your birth year supports your Life Gua directly. You have a strong energetic foundation.'),
-                'color' => 'text-blue-600 bg-blue-50'
-            ];
-        }
-
-        // Find index
-        $gIndex = array_search($g, $cycle);
-        $yIndex = array_search($y, $cycle);
-
-        // Distanz im Zyklus berechnen
-        // 1 Schritt vorwärts = Erzeugend (Mutter -> Kind)
-        // 2 Schritte vorwärts = Kontrollierend
-
-        // Wir prüfen: Was macht Y (Jahr) mit G (Gua)?
-
-        // Case 1: Jahr nährt Gua (Y -> G)
-        // Wenn G der Nachfolger von Y ist.
-        if (($yIndex + 1) % 5 === $gIndex) {
-            return [
-                'type' => __('Resource'),
-                'quality' => __('Excellent'),
-                'label' => __('Nourishing'),
-                'desc' => __('Your birth year nourishes your Life Gua (Resource). This indicates natural support and good vitality.'),
-                'color' => 'text-green-600 bg-green-50'
-            ];
-        }
-
-        // Case 2: Gua nährt Jahr (G -> Y)
-        // Das Jahr "saugt" am Gua (Output).
-        if (($gIndex + 1) % 5 === $yIndex) {
-            return [
-                'type' => __('Output'),
-                'quality' => __('Neutral'),
-                'label' => __('Draining'),
-                'desc' => __('Your Life Gua feeds your birth year. You are generous, but may tire easily. Watch your energy levels.'),
-                'color' => 'text-amber-600 bg-amber-50'
-            ];
-        }
-
-        // Case 3: Jahr kontrolliert Gua (Y -x-> G)
-        // Wenn Y zwei Schritte vor G ist (oder G drei Schritte nach Y).
-        if (($yIndex + 2) % 5 === $gIndex) {
-            return [
-                'type' => __('Control'),
-                'quality' => __('Challenging'),
-                'label' => __('Controlling'),
-                'desc' => __('Your birth year controls your Life Gua. You may face internal pressure or high expectations. Discipline helps you.'),
-                'color' => 'text-red-600 bg-red-50'
-            ];
-        }
-
-        // Case 4: Gua kontrolliert Jahr (G -x-> Y)
-        // Wenn G zwei Schritte vor Y ist.
-        if (($gIndex + 2) % 5 === $yIndex) {
-            return [
-                'type' => __('Wealth'),
-                'quality' => __('Mixed'),
-                'label' => __('Dominating'),
-                'desc' => __('Your Life Gua controls your birth year. You strive for control and achievement, but this requires effort.'),
-                'color' => 'text-purple-600 bg-purple-50'
-            ];
-        }
-
-        return []; // Should not happen
-    }
-
-    /**
      * Analysiert die Kompatibilität zwischen zwei GUA-Zahlen für Partner.
      */
     public function analyzePartnerCompatibility(int $gua1, int $gua2): array
@@ -576,52 +575,6 @@ class MingGuaCalculator
         return $result;
     }
 
-    public function ventilationToSitzGua(float $ventilationDegrees): int
-    {
-        $ventilationRanges = [
-            [337.5, 22.5, 9],   // N=LI
-            [22.5, 67.5, 2],    // NE=KUN
-            [67.5, 112.5, 7],   // E=TUI
-            [112.5, 157.5, 6],  // SE=CHIEN
-            [157.5, 202.5, 1],  // S=KAN
-            [202.5, 247.5, 8],  // SW=KEN
-            [247.5, 292.5, 3],  // W=CHEN
-            [292.5, 337.5, 4],  // NW=SUN
-        ];
-
-        $normalized = fmod($ventilationDegrees + 360, 360);
-
-        foreach ($ventilationRanges as [$min, $max, $sitzGua]) {
-            if ($normalized >= $min && $normalized < $max) {
-                return $sitzGua;
-            }
-        }
-        return 9; // Default LI
-    }
-
-    private function rotateBaguaGrid(int $sitzGua): array
-    {
-        $positions = [2, 3, 6, 9, 8, 7, 4, 1]; // Clockwise skip 5
-        $grid = [];
-        $currentGua = $sitzGua;
-
-        foreach ($positions as $position) {
-            $grid[$position] = $currentGua;
-            $currentGua = $this->getNextTrigram($currentGua);
-        }
-
-        $grid[5] = null; // Center empty
-        return $grid;
-    }
-
-    private function getNextTrigram(int $currentGua): int
-    {
-        $sequence = [1, 8, 3, 4, 9, 2, 7, 6]; // KAN→KEN→CHEN→SUN→LI→KUN→TUI→CHIEN
-        $index = array_search($currentGua, $sequence);
-        return $sequence[($index + 1) % count($sequence)];
-    }
-
-    // === MAIN BAGUA METHOD ===
     public function calculateClassicalBaguaForFloorPlan(FloorPlan $floorPlan, ?float $direction = null): array
     {
         if (!$floorPlan->project || !$floorPlan->project->hasValidDirection()) {
@@ -642,7 +595,7 @@ class MingGuaCalculator
                 $project->period,
                 $project->facing_direction,
                 $project->facing_mountain, // Pass the override if set
-                (bool) $project->is_replacement_chart
+                (bool)$project->is_replacement_chart
             );
 
             // Update Project with FS info if not yet set (and not overridden)
@@ -712,6 +665,53 @@ class MingGuaCalculator
             'notes_count' => count($results),
             'flying_stars' => (bool)$flyingStars,
         ];
+    }
+
+    public function ventilationToSitzGua(float $ventilationDegrees): int
+    {
+        $ventilationRanges = [
+            [337.5, 22.5, 9],   // N=LI
+            [22.5, 67.5, 2],    // NE=KUN
+            [67.5, 112.5, 7],   // E=TUI
+            [112.5, 157.5, 6],  // SE=CHIEN
+            [157.5, 202.5, 1],  // S=KAN
+            [202.5, 247.5, 8],  // SW=KEN
+            [247.5, 292.5, 3],  // W=CHEN
+            [292.5, 337.5, 4],  // NW=SUN
+        ];
+
+        $normalized = fmod($ventilationDegrees + 360, 360);
+
+        foreach ($ventilationRanges as [$min, $max, $sitzGua]) {
+            if ($normalized >= $min && $normalized < $max) {
+                return $sitzGua;
+            }
+        }
+        return 9; // Default LI
+    }
+
+    private function rotateBaguaGrid(int $sitzGua): array
+    {
+        $positions = [2, 3, 6, 9, 8, 7, 4, 1]; // Clockwise skip 5
+        $grid = [];
+        $currentGua = $sitzGua;
+
+        foreach ($positions as $position) {
+            $grid[$position] = $currentGua;
+            $currentGua = $this->getNextTrigram($currentGua);
+        }
+
+        $grid[5] = null; // Center empty
+        return $grid;
+    }
+
+    // === MAIN BAGUA METHOD ===
+
+    private function getNextTrigram(int $currentGua): int
+    {
+        $sequence = [1, 8, 3, 4, 9, 2, 7, 6]; // KAN→KEN→CHEN→SUN→LI→KUN→TUI→CHIEN
+        $index = array_search($currentGua, $sequence);
+        return $sequence[($index + 1) % count($sequence)];
     }
 
 }

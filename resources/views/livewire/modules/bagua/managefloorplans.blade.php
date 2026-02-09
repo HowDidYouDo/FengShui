@@ -108,18 +108,19 @@ new class extends Component {
         <div class="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800">
             <form wire:submit="uploadPlan" class="space-y-4">
                 <flux:input wire:model="newPlanTitle" :label="__('Plan Name (e.g. Ground Floor)')"
-                    :placeholder="__('e.g. Ground Floor')" required />
+                            :placeholder="__('e.g. Ground Floor')" required/>
 
                 <!-- Drag & Drop Area -->
-                <div x-data="{ dragging: false }" @dragover.prevent="dragging = true" @dragleave.prevent="dragging = false"
-                    @drop.prevent="dragging = false; $refs.fileInput.files = $event.dataTransfer.files; $refs.fileInput.dispatchEvent(new Event('change'))"
-                    class="border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer"
-                    :class="dragging ? 'border-brand-blue bg-brand-blue/5' : 'border-zinc-300 dark:border-zinc-700 hover:border-brand-blue'"
-                    @click="$refs.fileInput.click()">
+                <div x-data="{ dragging: false }" @dragover.prevent="dragging = true"
+                     @dragleave.prevent="dragging = false"
+                     @drop.prevent="dragging = false; $refs.fileInput.files = $event.dataTransfer.files; $refs.fileInput.dispatchEvent(new Event('change'))"
+                     class="border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer"
+                     :class="dragging ? 'border-brand-blue bg-brand-blue/5' : 'border-zinc-300 dark:border-zinc-700 hover:border-brand-blue'"
+                     @click="$refs.fileInput.click()">
                     <input x-ref="fileInput" type="file" wire:model="newPlanImage" class="hidden" accept="image/*">
 
                     <div class="flex flex-col items-center gap-2 text-zinc-500">
-                        <flux:icon.cloud-arrow-up class="size-8 mb-2 text-zinc-400" />
+                        <flux:icon.cloud-arrow-up class="size-8 mb-2 text-zinc-400"/>
                         @if($newPlanImage)
                             <span class="font-bold text-brand-blue">{{ $newPlanImage->getClientOriginalName() }}</span>
                         @else
@@ -132,10 +133,10 @@ new class extends Component {
 
                 <div class="flex justify-end">
                     <flux:button type="submit" variant="primary" class="bg-brand-blue text-white w-full sm:w-auto"
-                        wire:loading.attr="disabled">
+                                 wire:loading.attr="disabled">
                         <span wire:loading.remove>{{ __('Upload & Analyze') }}</span>
                         <span wire:loading class="flex items-center gap-2">
-                            <flux:icon.arrow-path class="animate-spin size-4" /> {{ __('Uploading...') }}
+                            <flux:icon.arrow-path class="animate-spin size-4"/> {{ __('Uploading...') }}
                         </span>
                     </flux:button>
                 </div>
@@ -159,34 +160,45 @@ new class extends Component {
                             $imageUrl = route('media.floor-plans', ['floorPlan' => $plan->id, 'media' => $media->id]);
                             $bounds = $plan->outer_bounds;
                         @endphp
-                        <img src="{{ $imageUrl }}" class="w-full h-full object-contain" id="preview-img-{{ $plan->id }}">
+                        <img src="{{ $imageUrl }}" class="w-full h-full object-contain"
+                             id="preview-img-{{ $plan->id }}">
 
                         {{-- Bagua Grid Overlay (nur wenn Bounds vorhanden) --}}
                         @if($bounds)
                             <svg class="absolute inset-0 w-full h-full pointer-events-none z-[5]"
-                                viewBox="0 0 {{ $bounds['image_width'] }} {{ $bounds['image_height'] }}"
-                                preserveAspectRatio="xMidYMid meet">
+                                 viewBox="0 0 {{ $bounds['image_width'] }} {{ $bounds['image_height'] }}"
+                                 preserveAspectRatio="xMidYMid meet">
                                 <g opacity="0.7">
                                     {{-- Outer Frame --}}
                                     <rect x="{{ $bounds['x1'] }}" y="{{ $bounds['y1'] }}"
-                                        width="{{ $bounds['x2'] - $bounds['x1'] }}" height="{{ $bounds['y2'] - $bounds['y1'] }}"
-                                        fill="none" stroke="#3b82f6" stroke-width="3" vector-effect="non-scaling-stroke" />
+                                          width="{{ $bounds['x2'] - $bounds['x1'] }}"
+                                          height="{{ $bounds['y2'] - $bounds['y1'] }}"
+                                          fill="none" stroke="#3b82f6" stroke-width="3"
+                                          vector-effect="non-scaling-stroke"/>
 
                                     {{-- Horizontal Grid Lines (3x3) --}}
-                                    <line x1="{{ $bounds['x1'] }}" y1="{{ $bounds['y1'] + ($bounds['y2'] - $bounds['y1']) * 0.33 }}"
-                                        x2="{{ $bounds['x2'] }}" y2="{{ $bounds['y1'] + ($bounds['y2'] - $bounds['y1']) * 0.33 }}"
-                                        stroke="#ef4444" stroke-width="2" vector-effect="non-scaling-stroke" />
-                                    <line x1="{{ $bounds['x1'] }}" y1="{{ $bounds['y1'] + ($bounds['y2'] - $bounds['y1']) * 0.66 }}"
-                                        x2="{{ $bounds['x2'] }}" y2="{{ $bounds['y1'] + ($bounds['y2'] - $bounds['y1']) * 0.66 }}"
-                                        stroke="#ef4444" stroke-width="2" vector-effect="non-scaling-stroke" />
+                                    <line x1="{{ $bounds['x1'] }}"
+                                          y1="{{ $bounds['y1'] + ($bounds['y2'] - $bounds['y1']) * 0.33 }}"
+                                          x2="{{ $bounds['x2'] }}"
+                                          y2="{{ $bounds['y1'] + ($bounds['y2'] - $bounds['y1']) * 0.33 }}"
+                                          stroke="#ef4444" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                                    <line x1="{{ $bounds['x1'] }}"
+                                          y1="{{ $bounds['y1'] + ($bounds['y2'] - $bounds['y1']) * 0.66 }}"
+                                          x2="{{ $bounds['x2'] }}"
+                                          y2="{{ $bounds['y1'] + ($bounds['y2'] - $bounds['y1']) * 0.66 }}"
+                                          stroke="#ef4444" stroke-width="2" vector-effect="non-scaling-stroke"/>
 
                                     {{-- Vertical Grid Lines (3x3) --}}
-                                    <line x1="{{ $bounds['x1'] + ($bounds['x2'] - $bounds['x1']) * 0.33 }}" y1="{{ $bounds['y1'] }}"
-                                        x2="{{ $bounds['x1'] + ($bounds['x2'] - $bounds['x1']) * 0.33 }}" y2="{{ $bounds['y2'] }}"
-                                        stroke="#ef4444" stroke-width="2" vector-effect="non-scaling-stroke" />
-                                    <line x1="{{ $bounds['x1'] + ($bounds['x2'] - $bounds['x1']) * 0.66 }}" y1="{{ $bounds['y1'] }}"
-                                        x2="{{ $bounds['x1'] + ($bounds['x2'] - $bounds['x1']) * 0.66 }}" y2="{{ $bounds['y2'] }}"
-                                        stroke="#ef4444" stroke-width="2" vector-effect="non-scaling-stroke" />
+                                    <line x1="{{ $bounds['x1'] + ($bounds['x2'] - $bounds['x1']) * 0.33 }}"
+                                          y1="{{ $bounds['y1'] }}"
+                                          x2="{{ $bounds['x1'] + ($bounds['x2'] - $bounds['x1']) * 0.33 }}"
+                                          y2="{{ $bounds['y2'] }}"
+                                          stroke="#ef4444" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                                    <line x1="{{ $bounds['x1'] + ($bounds['x2'] - $bounds['x1']) * 0.66 }}"
+                                          y1="{{ $bounds['y1'] }}"
+                                          x2="{{ $bounds['x1'] + ($bounds['x2'] - $bounds['x1']) * 0.66 }}"
+                                          y2="{{ $bounds['y2'] }}"
+                                          stroke="#ef4444" stroke-width="2" vector-effect="non-scaling-stroke"/>
                                 </g>
 
                                 {{-- Flying Stars in Map View --}}
@@ -200,18 +212,34 @@ new class extends Component {
                                             $sectorX = $bounds['x1'] + $col * $sectorWidth;
                                             $sectorY = $bounds['y1'] + $row * $sectorHeight;
                                         @endphp
-                                        <g class="flying-stars font-black" style="font-size: {{ max(10, ($bounds['x2']-$bounds['x1'])/30) }}px">
+                                        <g class="flying-stars font-black"
+                                           style="font-size: {{ max(10, ($bounds['x2']-$bounds['x1'])/30) }}px">
                                             @if($note->mountain_star)
-                                                <text x="{{ $sectorX + $sectorWidth * 0.15 }}" y="{{ $sectorY + $sectorHeight * 0.25 }}" fill="white" stroke="white" stroke-width="2" stroke-linejoin="round" text-anchor="middle">{{ $note->mountain_star }}</text>
-                                                <text x="{{ $sectorX + $sectorWidth * 0.15 }}" y="{{ $sectorY + $sectorHeight * 0.25 }}" fill="#b45309" text-anchor="middle">{{ $note->mountain_star }}</text>
+                                                <text x="{{ $sectorX + $sectorWidth * 0.15 }}"
+                                                      y="{{ $sectorY + $sectorHeight * 0.25 }}" fill="white"
+                                                      stroke="white" stroke-width="2" stroke-linejoin="round"
+                                                      text-anchor="middle">{{ $note->mountain_star }}</text>
+                                                <text x="{{ $sectorX + $sectorWidth * 0.15 }}"
+                                                      y="{{ $sectorY + $sectorHeight * 0.25 }}" fill="#b45309"
+                                                      text-anchor="middle">{{ $note->mountain_star }}</text>
                                             @endif
                                             @if($note->water_star)
-                                                <text x="{{ $sectorX + $sectorWidth * 0.85 }}" y="{{ $sectorY + $sectorHeight * 0.25 }}" fill="white" stroke="white" stroke-width="2" stroke-linejoin="round" text-anchor="middle">{{ $note->water_star }}</text>
-                                                <text x="{{ $sectorX + $sectorWidth * 0.85 }}" y="{{ $sectorY + $sectorHeight * 0.25 }}" fill="#1d4ed8" text-anchor="middle">{{ $note->water_star }}</text>
+                                                <text x="{{ $sectorX + $sectorWidth * 0.85 }}"
+                                                      y="{{ $sectorY + $sectorHeight * 0.25 }}" fill="white"
+                                                      stroke="white" stroke-width="2" stroke-linejoin="round"
+                                                      text-anchor="middle">{{ $note->water_star }}</text>
+                                                <text x="{{ $sectorX + $sectorWidth * 0.85 }}"
+                                                      y="{{ $sectorY + $sectorHeight * 0.25 }}" fill="#1d4ed8"
+                                                      text-anchor="middle">{{ $note->water_star }}</text>
                                             @endif
                                             @if($note->base_star)
-                                                <text x="{{ $sectorX + $sectorWidth * 0.5 }}" y="{{ $sectorY + $sectorHeight * 0.9 }}" fill="white" stroke="white" stroke-width="2" stroke-linejoin="round" text-anchor="middle">{{ $note->base_star }}</text>
-                                                <text x="{{ $sectorX + $sectorWidth * 0.5 }}" y="{{ $sectorY + $sectorHeight * 0.9 }}" fill="#52525b" text-anchor="middle">{{ $note->base_star }}</text>
+                                                <text x="{{ $sectorX + $sectorWidth * 0.5 }}"
+                                                      y="{{ $sectorY + $sectorHeight * 0.9 }}" fill="white"
+                                                      stroke="white" stroke-width="2" stroke-linejoin="round"
+                                                      text-anchor="middle">{{ $note->base_star }}</text>
+                                                <text x="{{ $sectorX + $sectorWidth * 0.5 }}"
+                                                      y="{{ $sectorY + $sectorHeight * 0.9 }}" fill="#52525b"
+                                                      text-anchor="middle">{{ $note->base_star }}</text>
                                             @endif
                                         </g>
                                     @endforeach
@@ -226,12 +254,12 @@ new class extends Component {
                     @if($plan->outer_bounds)
                         <div
                             class="absolute top-2 left-2 bg-green-500/90 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-sm shadow-sm flex items-center gap-1">
-                            <flux:icon.check class="size-3" /> {{ __('AI READY') }}
+                            <flux:icon.check class="size-3"/> {{ __('AI READY') }}
                         </div>
                     @else
                         <div
                             class="absolute top-2 left-2 bg-amber-500/90 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-sm shadow-sm flex items-center gap-1 animate-pulse">
-                            <flux:icon.arrow-path class="size-3 animate-spin" /> {{ __('ANALYZING...') }}
+                            <flux:icon.arrow-path class="size-3 animate-spin"/> {{ __('ANALYZING...') }}
                         </div>
                     @endif
 
@@ -239,10 +267,10 @@ new class extends Component {
                     <!-- Nur anzeigen, wenn Bild fertig analysiert ist (AI READY) -->
                     @if($plan->outer_bounds)
                         <a href="{{ route('modules.bagua.editor', $plan) }}"
-                            class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px] cursor-pointer z-10">
+                           class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px] cursor-pointer z-10">
                             <div
                                 class="bg-white text-zinc-900 px-4 py-2 rounded-full font-bold shadow-lg flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                <flux:icon.pencil-square class="size-4 text-brand-blue" />
+                                <flux:icon.pencil-square class="size-4 text-brand-blue"/>
                                 {{ __('Open Editor') }}
                             </div>
                         </a>
@@ -256,7 +284,7 @@ new class extends Component {
                     </div>
 
                     <flux:button icon="trash" size="sm" variant="danger" wire:click="deletePlan({{ $plan->id }})"
-                        wire:confirm="{{ __('Delete this floor plan permanently?') }}">
+                                 wire:confirm="{{ __('Delete this floor plan permanently?') }}">
                     </flux:button>
                 </div>
             </div>
@@ -264,7 +292,8 @@ new class extends Component {
     </div>
 
     @if($plans->isEmpty())
-        <div class="text-center py-12 text-zinc-400 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
+        <div
+            class="text-center py-12 text-zinc-400 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
             <p>{{ __('No floor plans uploaded yet.') }}</p>
         </div>
     @endif

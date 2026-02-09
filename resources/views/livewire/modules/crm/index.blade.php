@@ -8,7 +8,8 @@
             $usage = auth()->user()->customers()->count();
         @endphp
         @if($quota !== null)
-            <span class="ml-2 text-xs font-medium px-2 py-0.5 rounded-full {{ $usage >= $quota ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400' }}">
+            <span
+                class="ml-2 text-xs font-medium px-2 py-0.5 rounded-full {{ $usage >= $quota ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400' }}">
                 {{ __('Quota:') }} {{ $usage }} / {{ $quota }}
             </span>
         @endif
@@ -64,9 +65,9 @@
                             {{ __('Name') }}
                             @if($sortField === 'name')
                                 @if($sortDirection === 'asc')
-                                    <flux:icon.chevron-up class="ml-1 w-4 h-4" />
+                                    <flux:icon.chevron-up class="ml-1 w-4 h-4"/>
                                 @else
-                                    <flux:icon.chevron-down class="ml-1 w-4 h-4" />
+                                    <flux:icon.chevron-down class="ml-1 w-4 h-4"/>
                                 @endif
                             @endif
                         </flux:button>
@@ -82,9 +83,9 @@
                             {{ __('Birth Date') }}
                             @if($sortField === 'birth_date')
                                 @if($sortDirection === 'asc')
-                                    <flux:icon.chevron-up class="ml-1 w-4 h-4" />
+                                    <flux:icon.chevron-up class="ml-1 w-4 h-4"/>
                                 @else
-                                    <flux:icon.chevron-down class="ml-1 w-4 h-4" />
+                                    <flux:icon.chevron-down class="ml-1 w-4 h-4"/>
                                 @endif
                             @endif
                         </flux:button>
@@ -109,7 +110,7 @@
                         <td class="py-3 px-4">
                             @if($customer->email)
                                 <div class="flex items-center gap-2">
-                                    <flux:icon.envelope class="w-4 h-4 text-zinc-400" />
+                                    <flux:icon.envelope class="w-4 h-4 text-zinc-400"/>
                                     <span class="text-sm text-zinc-600 dark:text-zinc-400">{{ $customer->email }}</span>
                                 </div>
                             @else
@@ -136,7 +137,7 @@
                         </td>
                         <td class="py-3 px-4">
                             @if($customer->is_self_profile)
-                                <flux:icon.check-circle class="w-5 h-5 text-green-600" />
+                                <flux:icon.check-circle class="w-5 h-5 text-green-600"/>
                             @else
                                 <span class="text-zinc-300 dark:text-zinc-700">-</span>
                             @endif
@@ -167,7 +168,7 @@
                 @empty
                     <tr>
                         <td colspan="7" class="py-12 text-center">
-                            <flux:icon.user-group class="w-12 h-12 mx-auto text-zinc-300 dark:text-zinc-700 mb-3" />
+                            <flux:icon.user-group class="w-12 h-12 mx-auto text-zinc-300 dark:text-zinc-700 mb-3"/>
                             <flux:heading size="lg" class="mb-2">{{ __('No clients yet') }}</flux:heading>
                             <flux:text>{{ __('Add your first client to start your analysis.') }}</flux:text>
                             <flux:button

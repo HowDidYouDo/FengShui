@@ -45,7 +45,7 @@
                     {{-- Body --}}
                     <div class="px-6 py-4 space-y-6">
                         {{-- Basic Information --}}
-                        <flux:separator text="{{ __('Basic Information') }}" />
+                        <flux:separator text="{{ __('Basic Information') }}"/>
 
                         <flux:input
                             wire:model="name"
@@ -69,7 +69,7 @@
                         />
 
                         {{-- Birth Data --}}
-                        <flux:separator text="{{ __('Birth Data') }}" class="mt-8" />
+                        <flux:separator text="{{ __('Birth Data') }}" class="mt-8"/>
 
                         <flux:text size="sm" class="text-zinc-600 dark:text-zinc-400 -mt-4">
                             {{ __('Required for calculation of energetic cycles.') }}
@@ -101,15 +101,15 @@
                                 <flux:field>
                                     <flux:label>{{ __('Biological Sex') }}</flux:label>
                                     <flux:radio.group wire:model="gender" inline>
-                                        <flux:radio value="m" label="{{ __('Male') }}" />
-                                        <flux:radio value="f" label="{{ __('Female') }}" />
+                                        <flux:radio value="m" label="{{ __('Male') }}"/>
+                                        <flux:radio value="f" label="{{ __('Female') }}"/>
                                     </flux:radio.group>
                                 </flux:field>
                             </div>
                         </div>
 
                         {{-- Billing Address (Collapsible) --}}
-                        <flux:separator text="{{ __('Billing Address') }}" class="mt-8" />
+                        <flux:separator text="{{ __('Billing Address') }}" class="mt-8"/>
 
                         <flux:text size="sm" class="text-zinc-600 dark:text-zinc-400 -mt-4">
                             {{ __('Optional') }}
@@ -162,7 +162,7 @@
 
                         @if(!$hasSelf)
                             {{-- System --}}
-                            <flux:separator text="{{ __('System') }}" class="mt-8" />
+                            <flux:separator text="{{ __('System') }}" class="mt-8"/>
 
                             <flux:checkbox
                                 wire:model="is_self_profile"

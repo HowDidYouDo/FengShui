@@ -7,6 +7,44 @@ use Illuminate\Support\Facades\File;
 class LanguageService
 {
     /**
+     * Get the flag emoji for a language code
+     *
+     * @param string $locale
+     * @return string
+     */
+    public static function getLanguageFlag(string $locale): string
+    {
+        $flags = [
+            'de' => '🇩🇪',
+            'en' => '🇬🇧',
+            'es' => '🇪🇸',
+            'fr' => '🇫🇷',
+            'it' => '🇮🇹',
+            'pt' => '🇵🇹',
+            'nl' => '🇳🇱',
+            'pl' => '🇵🇱',
+            'ru' => '🇷🇺',
+            'zh' => '🇨🇳',
+            'ja' => '🇯🇵',
+            'ko' => '🇰🇷',
+            'ar' => '🇸🇦',
+        ];
+
+        return $flags[$locale] ?? '🌐';
+    }
+
+    /**
+     * Check if a locale is valid
+     *
+     * @param string $locale
+     * @return bool
+     */
+    public static function isValidLocale(string $locale): bool
+    {
+        return array_key_exists($locale, self::getAvailableLanguages());
+    }
+
+    /**
      * Get all available languages from the lang directory
      *
      * @return array
@@ -57,44 +95,6 @@ class LanguageService
         ];
 
         return $names[$locale] ?? strtoupper($locale);
-    }
-
-    /**
-     * Get the flag emoji for a language code
-     *
-     * @param string $locale
-     * @return string
-     */
-    public static function getLanguageFlag(string $locale): string
-    {
-        $flags = [
-            'de' => '🇩🇪',
-            'en' => '🇬🇧',
-            'es' => '🇪🇸',
-            'fr' => '🇫🇷',
-            'it' => '🇮🇹',
-            'pt' => '🇵🇹',
-            'nl' => '🇳🇱',
-            'pl' => '🇵🇱',
-            'ru' => '🇷🇺',
-            'zh' => '🇨🇳',
-            'ja' => '🇯🇵',
-            'ko' => '🇰🇷',
-            'ar' => '🇸🇦',
-        ];
-
-        return $flags[$locale] ?? '🌐';
-    }
-
-    /**
-     * Check if a locale is valid
-     *
-     * @param string $locale
-     * @return bool
-     */
-    public static function isValidLocale(string $locale): bool
-    {
-        return array_key_exists($locale, self::getAvailableLanguages());
     }
 
     /**

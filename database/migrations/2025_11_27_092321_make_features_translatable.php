@@ -24,15 +24,15 @@ return new class extends Migration {
             DB::table('features')
                 ->where('id', $feature->id)
                 ->update([
-                        'name' => json_encode([
-                            'en' => $feature->name,
-                            'de' => $feature->name, // Wird später übersetzt
-                        ]),
-                        'description' => $feature->description ? json_encode([
-                            'en' => $feature->description,
-                            'de' => $feature->description, // Wird später übersetzt
-                        ]) : null,
-                    ]);
+                    'name' => json_encode([
+                        'en' => $feature->name,
+                        'de' => $feature->name, // Wird später übersetzt
+                    ]),
+                    'description' => $feature->description ? json_encode([
+                        'en' => $feature->description,
+                        'de' => $feature->description, // Wird später übersetzt
+                    ]) : null,
+                ]);
         }
     }
 
@@ -56,9 +56,9 @@ return new class extends Migration {
             DB::table('features')
                 ->where('id', $feature->id)
                 ->update([
-                        'name' => $nameData['en'] ?? $feature->name,
-                        'description' => $descData ? ($descData['en'] ?? null) : null,
-                    ]);
+                    'name' => $nameData['en'] ?? $feature->name,
+                    'description' => $descData ? ($descData['en'] ?? null) : null,
+                ]);
         }
     }
 };

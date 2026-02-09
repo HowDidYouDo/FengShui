@@ -2,18 +2,25 @@
 // app/models/user.php
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
-use Filament\Models\Contracts\FilamentUser; // Für Filament Zugangskontrolle
-use Filament\Panel;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Spatie\MediaLibrary\HasMedia; // Interface
-use Spatie\MediaLibrary\InteractsWithMedia; // Trait
-use Spatie\Permission\Traits\HasRoles; // Trait
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Permission\Traits\HasRoles;
+
+// Für Filament Zugangskontrolle
+
+// Interface
+
+// Trait
+
+// Trait
 
 class User extends Authenticatable implements FilamentUser, HasMedia
 {
@@ -53,27 +60,6 @@ class User extends Authenticatable implements FilamentUser, HasMedia
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'birth_date' => 'date',
-        ];
-    }
-
-    // Beziehung zu den Features
-    public function features(): HasMany
-    {
-        return $this->hasMany(UserFeature::class);
-    }
-
-    // Der "magische" Check: Hat der User dieses Feature gültig?
     public function hasFeature(string $featureCode): bool
     {
         // Admin darf vielleicht alles? Wenn ja:
@@ -98,6 +84,29 @@ class User extends Authenticatable implements FilamentUser, HasMedia
             ->first();
 
         return $isIncluded ? $isIncluded->isValid() : false;
+    }
+
+    // Beziehung zu den Features
+
+    public function features(): HasMany
+    {
+        return $this->hasMany(UserFeature::class);
+    }
+
+    // Der "magische" Check: Hat der User dieses Feature gültig?
+
+    /**
+     * Prüft, ob noch Kontingent für eine Aktion verfügbar ist.
+     */
+    public function hasAvailableQuota(string $featureCode, int $currentUsage): bool
+    {
+        $quota = $this->getFeatureQuota($featureCode);
+
+        if ($quota === null) {
+            return true;
+        }
+
+        return $currentUsage < $quota;
     }
 
     /**
@@ -134,21 +143,6 @@ class User extends Authenticatable implements FilamentUser, HasMedia
         return $userFeatures->sum('quota');
     }
 
-    /**
-     * Prüft, ob noch Kontingent für eine Aktion verfügbar ist.
-     */
-    public function hasAvailableQuota(string $featureCode, int $currentUsage): bool
-    {
-        $quota = $this->getFeatureQuota($featureCode);
-
-        if ($quota === null) {
-            return true;
-        }
-
-        return $currentUsage < $quota;
-    }
-
-    // Filament Zugangskontrolle (Wer darf ins Admin Panel?)
     public function canAccessPanel(Panel $panel): bool
     {
         // Nur Admins dürfen ins Admin-Panel ('admin'), alle anderen müssen draußen bleiben.
@@ -162,6 +156,8 @@ class User extends Authenticatable implements FilamentUser, HasMedia
         return true;
     }
 
+    // Filament Zugangskontrolle (Wer darf ins Admin Panel?)
+
     /**
      * Get the user's initials
      */
@@ -170,7 +166,7 @@ class User extends Authenticatable implements FilamentUser, HasMedia
         return Str::of($this->name)
             ->explode(' ')
             ->take(2)
-            ->map(fn ($word) => Str::substr($word, 0, 1))
+            ->map(fn($word) => Str::substr($word, 0, 1))
             ->implode('');
     }
 
@@ -182,5 +178,19 @@ class User extends Authenticatable implements FilamentUser, HasMedia
     public function familyMembers(): HasMany
     {
         return $this->hasMany(FamilyMember::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'birth_date' => 'date',
+        ];
     }
 }

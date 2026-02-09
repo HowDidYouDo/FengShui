@@ -90,17 +90,18 @@ new class extends Component {
 
     <x-settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
         <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
-            <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" />
+            <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name"/>
 
             <div>
-                <flux:input wire:model="email" :label="__('Email')" type="email" required autocomplete="email" />
+                <flux:input wire:model="email" :label="__('Email')" type="email" required autocomplete="email"/>
 
                 @if (auth()->user() instanceof MustVerifyEmail && !auth()->user()->hasVerifiedEmail())
                     <div>
                         <flux:text class="mt-4">
                             {{ __('Your email address is unverified.') }}
 
-                            <flux:link class="text-sm cursor-pointer" wire:click.prevent="resendVerificationNotification">
+                            <flux:link class="text-sm cursor-pointer"
+                                       wire:click.prevent="resendVerificationNotification">
                                 {{ __('Click here to re-send the verification email.') }}
                             </flux:link>
                         </flux:text>
@@ -120,7 +121,7 @@ new class extends Component {
                 <!-- Left Column: Birth Place & Gender -->
                 <div class="space-y-6">
                     <flux:input wire:model="birth_place" :label="__('Birth Place')" icon="map-pin" type="text"
-                        :placeholder="__('e.g. Hamburg')" />
+                                :placeholder="__('e.g. Hamburg')"/>
 
                     <flux:radio.group wire:model="gender" :label="__('Biological Sex')">
                         <div class="flex gap-4">
@@ -132,7 +133,7 @@ new class extends Component {
                                     class="p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 hover:border-brand-blue dark:hover:border-brand-blue peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition-all flex items-center justify-center gap-3 h-full">
                                     <!-- Icon Male -->
                                     <flux:icon.user
-                                        class="size-5 text-zinc-400 peer-checked:text-brand-orange group-hover:text-brand-blue" />
+                                        class="size-5 text-zinc-400 peer-checked:text-brand-orange group-hover:text-brand-blue"/>
                                     <span
                                         class="font-medium text-zinc-700 dark:text-zinc-300 peer-checked:text-brand-orange">
                                         {{ __('Male') }}
@@ -141,7 +142,7 @@ new class extends Component {
                                 <!-- Kleiner Check-Haken oben rechts (optional) -->
                                 <div
                                     class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-brand-orange transition-opacity">
-                                    <flux:icon.check-circle class="size-4" />
+                                    <flux:icon.check-circle class="size-4"/>
                                 </div>
                             </label>
 
@@ -152,7 +153,7 @@ new class extends Component {
                                     class="p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 hover:border-brand-blue dark:hover:border-brand-blue peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition-all flex items-center justify-center gap-3 h-full">
                                     <!-- Icon Female -->
                                     <flux:icon.user-circle
-                                        class="size-5 text-zinc-400 peer-checked:text-brand-orange group-hover:text-brand-blue" />
+                                        class="size-5 text-zinc-400 peer-checked:text-brand-orange group-hover:text-brand-blue"/>
                                     <span
                                         class="font-medium text-zinc-700 dark:text-zinc-300 peer-checked:text-brand-orange">
                                         {{ __('Female') }}
@@ -161,7 +162,7 @@ new class extends Component {
                                 <!-- Kleiner Check-Haken oben rechts (optional) -->
                                 <div
                                     class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-brand-orange transition-opacity">
-                                    <flux:icon.check-circle class="size-4" />
+                                    <flux:icon.check-circle class="size-4"/>
                                 </div>
                             </label>
 
@@ -175,9 +176,9 @@ new class extends Component {
 
                 <!-- Right Column: Date & Time -->
                 <div class="grid grid-cols-2 gap-4 content-start">
-                    <flux:input wire:model="birth_date" :label="__('Birth Date')" type="date" icon="calendar" />
+                    <flux:input wire:model="birth_date" :label="__('Birth Date')" type="date" icon="calendar"/>
 
-                    <flux:input wire:model="birth_time" :label="__('Birth Time')" type="time" icon="clock" />
+                    <flux:input wire:model="birth_time" :label="__('Birth Time')" type="time" icon="clock"/>
                 </div>
             </div>
 
@@ -194,6 +195,6 @@ new class extends Component {
             </div>
         </form>
 
-        <livewire:settings.delete-user-form />
+        <livewire:settings.delete-user-form/>
     </x-settings.layout>
 </section>

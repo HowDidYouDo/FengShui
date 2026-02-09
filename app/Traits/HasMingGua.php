@@ -3,7 +3,6 @@
 namespace App\Traits;
 
 use App\Services\Metaphysics\MingGuaCalculator;
-use Illuminate\Support\Carbon;
 
 trait HasMingGua
 {

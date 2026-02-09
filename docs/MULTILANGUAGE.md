@@ -2,21 +2,25 @@
 
 ## Übersicht
 
-Das System unterstützt jetzt automatische Spracherkennung und -verwaltung. Alle verfügbaren Sprachen werden automatisch aus den JSON-Dateien im `lang/` Verzeichnis erkannt.
+Das System unterstützt jetzt automatische Spracherkennung und -verwaltung. Alle verfügbaren Sprachen werden automatisch
+aus den JSON-Dateien im `lang/` Verzeichnis erkannt.
 
 ## Funktionen
 
 ### ✅ Automatische Spracherkennung
+
 - Alle `.json` Dateien im `lang/` Verzeichnis werden automatisch erkannt
 - Keine hardcodierten Sprachlisten mehr
 - Einfaches Hinzufügen neuer Sprachen durch Erstellen einer neuen JSON-Datei
 
 ### ✅ Systemweite Sprachunterstützung
+
 - **Frontend**: Alle Blade-Views nutzen die gewählte Sprache
 - **Filament Admin**: Das Admin-Panel nutzt ebenfalls die Benutzersprache
 - **Persistenz**: Spracheinstellung wird in der Datenbank gespeichert
 
 ### ✅ Moderne UI
+
 - **Flaggen-Emojis**: Visuelle Darstellung der Sprachen
 - **Native Namen**: Sprachen werden in ihrer Muttersprache angezeigt
 - **Aktive Markierung**: Die aktuelle Sprache wird hervorgehoben
@@ -25,6 +29,7 @@ Das System unterstützt jetzt automatische Spracherkennung und -verwaltung. Alle
 ## Verfügbare Sprachen
 
 Aktuell unterstützte Sprachen:
+
 - 🇩🇪 Deutsch (de)
 - 🇬🇧 English (en)
 - 🇪🇸 Español (es)
@@ -39,12 +44,12 @@ Aktuell unterstützte Sprachen:
    ```
 
 2. **Übersetzungen anpassen**
-   - Öffne die neue `it.json` Datei
-   - Übersetze alle Werte (nicht die Keys!)
+    - Öffne die neue `it.json` Datei
+    - Übersetze alle Werte (nicht die Keys!)
 
 3. **Fertig!**
-   - Die neue Sprache erscheint automatisch in allen Sprachauswahlen
-   - Keine Code-Änderungen erforderlich
+    - Die neue Sprache erscheint automatisch in allen Sprachauswahlen
+    - Keine Code-Änderungen erforderlich
 
 ## Technische Details
 
@@ -85,11 +90,13 @@ Die `SetLocale` Middleware setzt die Sprache in folgender Priorität:
 ### Sprachauswahl-Komponenten
 
 **Sidebar** (`resources/views/components/layouts/app/sidebar.blade.php`)
+
 - Dropdown mit allen verfügbaren Sprachen
 - Zeigt Flagge und nativen Namen
 - Markiert aktive Sprache
 
 **Einstellungen** (`resources/views/livewire/settings/appearance.blade.php`)
+
 - Grid-Layout mit großen Karten
 - Responsive (1-3 Spalten je nach Bildschirmgröße)
 - Hover-Effekte und Animationen
@@ -99,6 +106,7 @@ Die `SetLocale` Middleware setzt die Sprache in folgender Priorität:
 ### Übersetzungskeys
 
 ✅ **Gut:**
+
 ```php
 {{ __('Welcome back') }}
 {{ __('Save Changes') }}
@@ -106,6 +114,7 @@ Die `SetLocale` Middleware setzt die Sprache in folgender Priorität:
 ```
 
 ❌ **Schlecht:**
+
 ```php
 {{ 'Welcome back' }}  // Nicht übersetzt
 Welcome back          // Hardcoded

@@ -60,7 +60,7 @@ return new class extends Migration {
             // Gebäude-Daten
             $table->integer('settled_year')->nullable();
             $table->decimal('facing_direction', 5, 2)->nullable(); // 0.00 bis 359.99
-            $table->decimal('ventilation_direction',5,2)->nullable(); // 0.00 bis 359.99
+            $table->decimal('ventilation_direction', 5, 2)->nullable(); // 0.00 bis 359.99
             $table->integer('period')->nullable(); // Feng Shui Periode (1-9)
 
             $table->timestamps();

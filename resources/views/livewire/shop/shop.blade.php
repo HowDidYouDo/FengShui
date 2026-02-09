@@ -10,7 +10,8 @@
 
             @if(!empty($cart))
                 <div class="mb-6 px-4 sm:px-0 flex justify-end">
-                    <flux:button :href="route('checkout')" wire:navigate variant="primary" class="!bg-brand-blue hover:!bg-brand-orange !text-white border-0 transition-colors">
+                    <flux:button :href="route('checkout')" wire:navigate variant="primary"
+                                 class="!bg-brand-blue hover:!bg-brand-orange !text-white border-0 transition-colors">
                         {{ __('Go to Checkout') }} ({{ count($cart) }})
                     </flux:button>
                 </div>
@@ -28,9 +29,11 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4 sm:px-0">
 
                 @forelse($features as $feature)
-                    <div class="relative group flex flex-col bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+                    <div
+                        class="relative group flex flex-col bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
                         <div class="p-6 flex flex-col h-full">
-                            <div class="w-12 h-12 rounded-lg mb-4 flex items-center justify-center text-lg font-bold bg-zinc-100 text-zinc-400 dark:bg-zinc-800">
+                            <div
+                                class="w-12 h-12 rounded-lg mb-4 flex items-center justify-center text-lg font-bold bg-zinc-100 text-zinc-400 dark:bg-zinc-800">
                                 {{ substr($feature->name, 0, 1) }}
                             </div>
 
@@ -62,8 +65,10 @@
                                         wire:target="buy({{ $feature->id }})"
                                         variant="primary"
                                         class="w-full !bg-brand-orange hover:!bg-brand-blue !text-white border-0 transition-colors">
-                                        <span wire:loading.remove wire:target="buy({{ $feature->id }})">{{ __('Buy Now') }}</span>
-                                        <span wire:loading wire:target="buy({{ $feature->id }})">{{ __('Adding...') }}</span>
+                                        <span wire:loading.remove
+                                              wire:target="buy({{ $feature->id }})">{{ __('Buy Now') }}</span>
+                                        <span wire:loading
+                                              wire:target="buy({{ $feature->id }})">{{ __('Adding...') }}</span>
                                     </flux:button>
                                 @endif
                             </div>
