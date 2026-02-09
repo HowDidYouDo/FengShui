@@ -19,6 +19,9 @@ class Project extends Model
         'ventilation_direction',
         'period',
         'use_facing_direction',
+        'facing_mountain',
+        'is_replacement_chart',
+        'special_chart_type',
     ];
 
     protected $casts = [
@@ -27,6 +30,7 @@ class Project extends Model
         'ventilation_direction' => 'decimal:4',
         'period' => 'integer',
         'use_facing_direction' => 'boolean',
+        'is_replacement_chart' => 'boolean',
     ];
 
     public function customer(): BelongsTo

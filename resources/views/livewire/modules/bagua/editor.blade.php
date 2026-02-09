@@ -40,21 +40,31 @@ new class extends Component {
 
         if ($customer) {
             // Add Main Customer
+            $guaAttr = $customer->life_gua ? app(MingGuaCalculator::class)->getAttributes($customer->life_gua) : null;
+            $elementColors = $guaAttr ? app(MingGuaCalculator::class)->getElementColors($guaAttr['element']) : null;
+
             $this->familyMembers[] = [
                 'id' => $customer->id,
                 'name' => $customer->name . ' (' . __('Owner') . ')',
                 'type' => 'customer',
-                'ming_gua' => $this->calculateMingGua($customer),
+                'ming_gua' => $customer->life_gua,
+                'element' => $guaAttr['element'] ?? null,
+                'colors' => $elementColors,
                 'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($customer->name) . '&background=random'
             ];
 
             // Add Family Members
             foreach ($customer->familyMembers as $member) {
+                $mGuaAttr = $member->life_gua ? app(MingGuaCalculator::class)->getAttributes($member->life_gua) : null;
+                $mElementColors = $mGuaAttr ? app(MingGuaCalculator::class)->getElementColors($mGuaAttr['element']) : null;
+
                 $this->familyMembers[] = [
                     'id' => $member->id,
                     'name' => $member->name,
                     'type' => 'family_member',
-                    'ming_gua' => $this->calculateMingGua($member),
+                    'ming_gua' => $member->life_gua,
+                    'element' => $mGuaAttr['element'] ?? null,
+                    'colors' => $mElementColors,
                     'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($member->name) . '&background=random'
                 ];
             }
@@ -63,15 +73,7 @@ new class extends Component {
 
     private function calculateMingGua($person): ?int
     {
-        if (!$person->birth_date || !$person->gender)
-            return null;
-        try {
-            $year = $person->birth_date->year;
-            // Solar year check could go here if meaningful birth_date is provided
-            return app(MingGuaCalculator::class)->calculate($year, $person->gender);
-        } catch (Exception $e) {
-            return null;
-        }
+        return $person->life_gua;
     }
 
     public function assignPerson($type, $id, $guaNumber): void
@@ -185,6 +187,9 @@ new class extends Component {
                 'id' => $a->id,
                 'person_name' => $a->familyMember ? $a->familyMember->name : ($a->customer ? $a->customer->name : '?'),
                 'type' => $a->familyMember ? 'family_member' : 'customer',
+                'ming_gua' => $a->familyMember ? $a->familyMember->life_gua : ($a->customer ? $a->customer->life_gua : null),
+                'element' => $a->familyMember ? (app(MingGuaCalculator::class)->getAttributes($a->familyMember->life_gua)['element'] ?? null) : ($a->customer ? (app(MingGuaCalculator::class)->getAttributes($a->customer->life_gua)['element'] ?? null) : null),
+                'colors' => $a->familyMember ? app(MingGuaCalculator::class)->getElementColors(app(MingGuaCalculator::class)->getAttributes($a->familyMember->life_gua)['element'] ?? '') : ($a->customer ? app(MingGuaCalculator::class)->getElementColors(app(MingGuaCalculator::class)->getAttributes($a->customer->life_gua)['element'] ?? '') : null),
                 'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($a->familyMember ? $a->familyMember->name : ($a->customer ? $a->customer->name : '?'))
             ])->values()->toArray()
         ])->values()->toArray();
@@ -358,11 +363,15 @@ new class extends Component {
                         height: ${toView((h.y2-h.y1)/3) - 30}px;
                         `">
                         <template x-for="assign in note.assignments" :key="assign.id">
-                            <div class="relative group flex items-center justify-center bg-white rounded-full shadow-md border border-zinc-200 dark:border-zinc-700 p-0.5"
-                                :title="assign.person_name">
+                            <div class="relative group flex items-center justify-center rounded-full shadow-md border-2 p-0.5 transition-all hover:scale-110"
+                                :class="assign.colors ? assign.colors[2] + ' ' + assign.colors[1] : 'bg-white border-zinc-200 dark:border-zinc-700'"
+                                :title="assign.person_name + ' (Gua ' + assign.ming_gua + ')'">
                                 <img :src="assign.avatar" :alt="assign.person_name" class="w-10 h-10 rounded-full object-cover">
+                                <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-[10px] font-bold"
+                                     :class="assign.colors ? assign.colors[0] : 'text-zinc-500'"
+                                     x-text="assign.ming_gua"></div>
                                 <button @click="$wire.removeAssignment(assign.id)"
-                                    class="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-sm opacity-0 group-hover:opacity-100 transition-all transform hover:scale-110 z-10 cursor-pointer">
+                                    class="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-sm opacity-0 group-hover:opacity-100 transition-all transform z-10 cursor-pointer">
                                     &times;
                                 </button>
                             </div>
@@ -400,13 +409,20 @@ new class extends Component {
                 <div class="flex flex-col gap-2">
                     <template x-for="member in familyMembers" :key="member.type + member.id">
                         <div draggable="true" @dragstart="startDragMember($event, member)"
-                            class="flex items-center gap-3 p-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-grab active:cursor-grabbing border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm">
-                            <img :src="member.avatar" :alt="member.name" class="w-8 h-8 rounded-full">
+                            class="flex items-center gap-3 p-2 rounded-xl hover:shadow-md cursor-grab active:cursor-grabbing border-2 transition-all group"
+                            :class="member.colors ? member.colors[2] + ' ' + member.colors[1] : 'bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700'">
+                            <div class="relative">
+                                <img :src="member.avatar" :alt="member.name" class="w-10 h-10 rounded-full border-2 border-white dark:border-zinc-900 shadow-sm">
+                                <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-[10px] font-bold shadow-sm"
+                                     :class="member.colors ? member.colors[0] : 'text-zinc-500'"
+                                     x-text="member.ming_gua"></div>
+                            </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium truncate text-zinc-900 dark:text-gray-200"
+                                <p class="text-sm font-bold truncate text-zinc-900 dark:text-gray-100"
                                     x-text="member.name"></p>
-                                <p class="text-xs text-zinc-500" x-show="member.ming_gua">{{ __('Gua') }}: <span
-                                        x-text="member.ming_gua"></span></p>
+                                <p class="text-[10px] uppercase tracking-wider font-semibold opacity-70"
+                                   :class="member.colors ? member.colors[0] : 'text-zinc-500'"
+                                   x-text="member.element || '{{ __('Unknown') }}'"></p>
                             </div>
                         </div>
                     </template>
@@ -570,24 +586,8 @@ new class extends Component {
                 const col = Math.floor(relX * 3);
                 const row = Math.floor(relY * 3);
 
-                // 4. Map to Gua (Formula from PHP: 1=N, 9=S, etc. is messy, better rely on specific grid content map)
-                // But wait, the standard map in PHP is:
-                // grid[col][row] (where col 0..2, row 0..2)
-                // Actually, let's look at how we render:
-                // <rect :x="toView(h.x1 + {{ $col }} * ...
-                // $row = 2 - floor(($guaNum - 1) / 3);  <-- This was used for rendering PHP side
-                //
-                // Let's reverse it.
-                // Row 0 = Top, Row 1 = Center, Row 2 = Bottom (Visual)
-                // In PHP logic (Bagua Magic Square):
-                // 4 9 2
-                // 3 5 7
-                // 8 1 6
-                //
-                // Wait, MingGuaCalculator::rotateBaguaGrid uses a standard map rotated by SitzGua.
-                // The visual grid cells are FIXED in position (Top-Left, Top-Center, etc.)
-                // But their MEANING (Gua) changes.
-                // WE need to find which "note" is at this col/row.
+                // 4. Map to Gua
+                // Find which "note" is at this col/row.
 
                 const targetNote = this.baguaNotes.find(n => n.col === col && n.row === row);
 

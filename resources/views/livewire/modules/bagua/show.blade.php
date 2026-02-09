@@ -35,19 +35,38 @@ class extends Component {
         return $this->customer->projects()->latest()->first();
     }
 
+    public function getCalculatorProperty(): MingGuaCalculator
+    {
+        return new MingGuaCalculator();
+    }
+
+    public function getArrowRotationsProperty(): array
+    {
+        return [
+            'N' => 'rotate-0',
+            'NE' => 'rotate-45',
+            'E' => 'rotate-90',
+            'SE' => 'rotate-135',
+            'S' => 'rotate-180',
+            'SW' => 'rotate-225',
+            'W' => 'rotate-270',
+            'NW' => 'rotate-315',
+        ];
+    }
+
     // Computed Property für die Analysen (Gua)
     public function getAnalysesProperty(): Collection
     {
-        $calculator = new MingGuaCalculator();
+        $calculator = $this->getCalculatorProperty();
         $results = collect();
         $user = auth()->user();
 
         $mainGua = null;
 
         // 1. Haupt-Person (Kunde)
-        if ($this->customer->birth_date && $this->customer->gender) {
+        if ($this->customer->life_gua) {
+            $mainGua = $this->customer->life_gua;
             $year = $calculator->getSolarYear($this->customer->birth_date);
-            $mainGua = $calculator->calculate($year, $this->customer->gender);
             $yearElement = $calculator->getYearElement($year);
             $elementColors = $calculator->getElementColors($yearElement);
             $zodiac = $calculator->getZodiac($year);
@@ -72,9 +91,9 @@ class extends Component {
         // 2. Familie (wenn Feature aktiv)
         if ($user->hasFeature('family')) {
             foreach ($this->customer->familyMembers as $member) {
-                if ($member->birth_date && $member->gender) {
+                if ($member->life_gua) {
+                    $gua = $member->life_gua;
                     $year = $calculator->getSolarYear($member->birth_date);
-                    $gua = $calculator->calculate($year, $member->gender);
                     $yearElement = $calculator->getYearElement($year);
                     $elementColors = $calculator->getElementColors($yearElement);
                     $zodiac = $calculator->getZodiac($year);
@@ -220,9 +239,13 @@ class extends Component {
                             <div
                                 class="bg-white dark:bg-zinc-900 overflow-hidden shadow-sm sm:rounded-xl border border-zinc-200 dark:border-zinc-800">
                                 <div class="p-8 flex flex-col md:flex-row items-center gap-8">
+                                    @php
+                                        $calculator = $this->calculator;
+                                        $arrowRotations = $this->arrowRotations;
+                                    @endphp
                                     <div class="relative shrink-0">
                                         <div
-                                            class="w-24 h-24 md:w-32 md:h-32 rounded-full flex items-center justify-center text-5xl font-bold border-4 shadow-inner {{ $analysis['attributes']['colors'][0] }} {{ $analysis['attributes']['colors'][1] }} border-current">
+                                            class="w-24 h-24 md:w-32 md:h-32 rounded-full flex items-center justify-center text-5xl font-bold border-4 shadow-inner {{ $calculator->getElementColors($analysis['attributes']['element'])[0] }} {{ $calculator->getElementColors($analysis['attributes']['element'])[1] }} {{ $calculator->getElementColors($analysis['attributes']['element'])[2] }}">
                                             {{ $analysis['gua'] }}
                                         </div>
                                         <div

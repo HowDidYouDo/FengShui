@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasMingGua;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,6 +11,8 @@ use Illuminate\Support\Carbon;
 
 class FamilyMember extends Model
 {
+    use HasMingGua;
+
     public const RELATIONSHIP_PRIMARY_PARTNER = 'primary_partner';
     public const RELATIONSHIP_SECONDARY_PARTNER = 'secondary_partner';
     public const RELATIONSHIP_CHILD = 'child';
@@ -25,6 +28,8 @@ class FamilyMember extends Model
         'birth_time',
         'birth_place',
         'gender',
+        'life_gua',
+        'kua_group',
     ];
 
     public static function getRelationships(): array
@@ -78,6 +83,7 @@ class FamilyMember extends Model
     {
         return [
             'birth_place' => 'encrypted',
+            'life_gua' => 'integer',
         ];
     }
 
@@ -88,16 +94,15 @@ class FamilyMember extends Model
         $decrypted = null;
 
         try {
-            // 1. Try decrypting (with unserialization - standard for encrypt() helper)
-            $decrypted = decrypt($value);
+            // 1. Try decrypting (WITHOUT unserialization - our current standard)
+            $decrypted = decrypt($value, false);
         } catch (\Exception $e) {
             try {
-                // 2. Try decrypting (without unserialization - standard for 'encrypted' cast)
-                $decrypted = decrypt($value, false);
+                // 2. Try decrypting (WITH unserialization - fallback for old encrypt() data)
+                $decrypted = decrypt($value);
             } catch (\Exception $e2) {
-                // 3. Fallback: it might not be encrypted at all (old data)
+                // 3. Fallback: it might not be encrypted at all (very old data)
                 if (is_string($value) && str_starts_with($value, 'eyJpdi')) {
-                    // It looks encrypted but we can't decrypt it (e.g. wrong APP_KEY)
                     return null;
                 }
                 $decrypted = $value;

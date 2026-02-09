@@ -11,6 +11,14 @@ class RoomAssignment extends Model
         'bagua_note_id',
         'customer_id',
         'family_member_id',
+        'usage_type',
+        'person_facing_direction',
+        'suitability_rating',
+    ];
+
+    protected $casts = [
+        'person_facing_direction' => 'decimal:2',
+        'suitability_rating' => 'integer',
     ];
 
     public function baguaNote(): BelongsTo

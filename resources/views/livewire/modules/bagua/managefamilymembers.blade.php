@@ -162,22 +162,38 @@ new class extends Component {
     @if($members->isNotEmpty())
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @foreach($members as $member)
-                <div class="group relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 hover:shadow-md transition-all">
+                @php
+                    $guaAttr = $member->life_gua ? app(\App\Services\Metaphysics\MingGuaCalculator::class)->getAttributes($member->life_gua) : null;
+                    $elementColors = $guaAttr ? app(\App\Services\Metaphysics\MingGuaCalculator::class)->getElementColors($guaAttr['element']) : null;
+                @endphp
+                <div class="group relative bg-white dark:bg-zinc-900 border-2 {{ $elementColors ? $elementColors[2] : 'border-zinc-200 dark:border-zinc-800' }} rounded-xl p-4 hover:shadow-md transition-all {{ $elementColors ? $elementColors[1] : '' }}">
 
                     <div class="flex items-start justify-between">
                         <div class="flex items-center gap-3 flex-1 min-w-0">
                             <!-- Avatar -->
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center bg-brand-orange/10 text-brand-orange font-bold text-lg shrink-0">
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-800 shadow-sm {{ $elementColors ? $elementColors[1] . ' ' . $elementColors[0] : 'bg-brand-orange/10 text-brand-orange' }} font-bold text-xl shrink-0">
                                 {{ substr($member->name, 0, 1) }}
                             </div>
 
                             <div class="min-w-0 flex-1">
-                                <h4 class="font-bold text-zinc-900 dark:text-white truncate">{{ $member->name }}</h4>
-                                @if($member->relationship)
-                                    <p class="text-xs text-zinc-500">{{ $member->getRelationshipLabel() }}</p>
-                                @else
-                                    <p class="text-xs text-zinc-400 italic">{{ __('No relationship specified') }}</p>
-                                @endif
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-bold text-zinc-900 dark:text-white truncate">{{ $member->name }}</h4>
+                                    @if($member->life_gua)
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase {{ $elementColors ? $elementColors[0] . ' ' . $elementColors[1] : 'bg-zinc-100 text-zinc-600' }}">
+                                            Gua {{ $member->life_gua }}
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    @if($member->relationship)
+                                        <p class="text-xs text-zinc-500">{{ $member->getRelationshipLabel() }}</p>
+                                    @endif
+                                    @if($guaAttr)
+                                        <span class="text-[10px] font-bold uppercase tracking-widest opacity-70 {{ $elementColors ? $elementColors[0] : '' }}">
+                                            • {{ $guaAttr['element'] }}
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
 
