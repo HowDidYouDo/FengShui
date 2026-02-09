@@ -131,6 +131,7 @@ class extends Component {
                 'person' => $this->customer,
                 'gua' => $mainGua,
                 'attributes' => $calculator->getAttributes($mainGua),
+                'best_direction' => $calculator->getBestDirection($mainGua),
                 'year_element' => $yearElement,
                 'year_element_colors' => $elementColors,
                 'zodiac' => $zodiac,
@@ -163,6 +164,7 @@ class extends Component {
                         'person' => $member,
                         'gua' => $gua,
                         'attributes' => $calculator->getAttributes($gua),
+                        'best_direction' => $calculator->getBestDirection($gua),
                         'year_element' => $yearElement,
                         'year_element_colors' => $elementColors,
                         'zodiac' => $zodiac,
@@ -353,6 +355,16 @@ class extends Component {
                                                 class="text-zinc-900 dark:text-zinc-200">{{ __($analysis['attributes']['group']) }} {{ __('Group') }}</strong>.
                                         </p>
 
+                                        @if(isset($analysis['best_direction']))
+                                            <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1 flex items-center gap-1">
+                                                <flux:icon.star class="size-3 text-amber-500 inline mr-1" />
+                                                {{ __('Best Compass Direction') }}: 
+                                                <strong class="text-zinc-900 dark:text-zinc-200">
+                                                    {{ $analysis['best_direction']['direction'] }} ({{ $analysis['best_direction']['degrees'] }})
+                                                </strong>
+                                            </p>
+                                        @endif
+
                                         <!-- Flying Stars Summary (if applicable and authorized) -->
                                         @if($analysis['type'] === 'Main' && auth()->user()->hasFeature('flying_stars') && $this->project?->facing_mountain)
                                             <div class="mt-4 flex flex-wrap gap-2">
@@ -505,17 +517,48 @@ class extends Component {
                                 <span
                                     class="text-xs font-bold text-zinc-400 uppercase tracking-wider">{{ __('Active Project') }}</span>
                                 <h4 class="font-bold text-lg text-brand-blue">{{ $this->project->name }}</h4>
-                                @if($this->project->facing_direction)
-                                    <p class="text-sm text-zinc-500 mt-1">
-                                        {{ __('Facing:') }} <strong>{{ $this->project->facing_direction }}°</strong>
-                                        | {{ __('Year:') }} <strong>{{ $this->project->settled_year }}</strong>
-                                        | {{ __('Period:') }} <span
+                                @if($this->project->compass_direction)
+                                    <div class="text-sm text-zinc-500 mt-1 flex items-center flex-wrap gap-x-2">
+                                        @php
+                                            $currCalc = $this->calculator;
+                                            $currCompass = $this->project->compass_direction;
+                                            $currSitting = $this->project->sitting_direction;
+                                            
+                                            if ($currSitting === null) {
+                                                $currSitting = fmod($currCompass + 180, 360);
+                                            }
+
+                                            $currSitzGua = $currCalc->degreesToTrigram($currSitting);
+                                            $currGroup = $currCalc->calculateHouseGroup($currSitzGua);
+                                            
+                                            $facingMtn = $currCalc->calculateMountain($currCompass);
+                                            $sitzMtn = $currCalc->calculateMountain($currSitting);
+                                        @endphp
+                                        <span>
+                                            {{ __('Facing') }}: <strong>{{ $currCompass }}° ({{ $facingMtn }})</strong>
+                                        </span>
+                                        <span class="text-zinc-300">|</span>
+                                        <span>
+                                            {{ __('Sitting') }}: <strong>{{ $currSitting }}° ({{ $sitzMtn }})</strong>
+                                        </span>
+                                        <span class="text-zinc-300">|</span>
+                                        <span>
+                                            {{ __('Group') }}: <strong>{{ $currGroup }}</strong>
+                                        </span>
+                                        <span class="text-zinc-300">|</span>
+                                        <span>
+                                            {{ __('Year') }}: <strong>{{ $this->project->settled_year }}</strong>
+                                        </span>
+                                        <span class="text-zinc-300">|</span>
+                                        <span>
+                                            {{ __('Period') }}: <span
                                             class="inline-flex items-center justify-center size-5 rounded-full bg-zinc-100 dark:bg-zinc-700 text-xs font-bold">{{ $this->project->period ?? '-' }}</span>
-                                    </p>
+                                        </span>
+                                    </div>
                                 @else
                                     <p class="text-sm text-amber-600 mt-1 flex items-center gap-1">
                                         <flux:icon.exclamation-triangle
-                                            class="size-4"/> {{ __('Missing Facing Direction') }}
+                                            class="size-4"/> {{ __('Missing Compass Direction') }}
                                     </p>
                                 @endif
                             </div>

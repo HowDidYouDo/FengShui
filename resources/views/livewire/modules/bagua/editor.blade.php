@@ -17,14 +17,19 @@ new class extends Component {
     public int $baguaNotesCount = 0;
     public array $familyMembers = [];
 
-    #[Validate('nullable|numeric|min:0|max:360')]
-    public $ventilationDirection;
+    public string $houseGroup = '-';
+    public string $mountain = '-';
+    public string $facingMountain = '-';
+
+    public ?float $ventilationDirection = 0;
 
     public function mount(FloorPlan $floorPlan): void
     {
         $floorPlan->load(['project.customer', 'baguaNotes.roomAssignments.familyMember', 'baguaNotes.roomAssignments.customer']);
         $this->authorize('view', $floorPlan->project);
         $this->floorPlan = $floorPlan;
+        
+        // Ensure properties are loaded on the model for reactivity? livewire handles it.
         $this->ventilationDirection = $floorPlan->project->ventilation_direction ?? 0;
 
         if ($floorPlan->hasMedia('floor_plans')) {
@@ -33,6 +38,20 @@ new class extends Component {
         }
 
         $this->baguaNotesCount = $floorPlan->baguaNotes()->count();
+
+        // Calculate initial House Group / Mountain
+        $calc = app(MingGuaCalculator::class);
+        $compass = $floorPlan->project->compass_direction ?? 0;
+        $sitting = $floorPlan->project->sitting_direction; // Explicit Sitting
+
+        if ($sitting === null) {
+            $sitting = fmod($compass + 180, 360);
+        }
+
+        $sitzGua = $calc->degreesToTrigram($sitting);
+        $this->houseGroup = $calc->calculateHouseGroup($sitzGua);
+        $this->mountain = $calc->calculateMountain($sitting);
+        $this->facingMountain = $calc->calculateMountain($compass);
 
         // Load family members + Owner
         $customer = $floorPlan->project->customer;
@@ -212,38 +231,76 @@ new class extends Component {
 
     public function updateVentilationDirection(): void
     {
-        $this->validate();
+        $this->validate([
+            'ventilationDirection' => 'numeric|min:0|max:360',
+        ]);
 
         $this->floorPlan->project->update([
             'ventilation_direction' => $this->ventilationDirection
         ]);
 
-        $this->calculateBagua();
-        $this->dispatch('notify', message: __('Direction updated and Bagua recalculated!'));
+        $this->dispatch('notify', message: __('Ventilation direction saved!'));
+        // We do typically recalculate Bagua if logic depended on it, but now Bagua depends on Facing.
+        // So we don't necessarily call calculateBagua(). But user might expect refreshing, so we can dispatch updated notification.
+    }
+
+    private function getGridCoordinates(int $guaNumber): array
+    {
+        // Maps Lo Shu Number (position) to Grid [Col, Row] (0..2)
+        // 4(SE) 9(S) 2(SW)
+        // 3(E)  5(C) 7(W)
+        // 8(NE) 1(N) 6(NW)
+        // Visual Grid: Row 0=Top, 2=Bottom. Col 0=Left, 2=Right.
+        // Mapped:
+        // 4 -> (0,0)
+        // 9 -> (1,0)
+        // 2 -> (2,0)
+        // 3 -> (0,1)
+        // 5 -> (1,1)
+        // 7 -> (2,1)
+        // 8 -> (0,2)
+        // 1 -> (1,2)
+        // 6 -> (2,2)
+        
+        return match ($guaNumber) {
+            1 => ['col' => 1, 'row' => 2], // N (Bottom Center)
+            2 => ['col' => 2, 'row' => 0], // SW (Top Right)
+            3 => ['col' => 0, 'row' => 1], // E (Left Middle)
+            4 => ['col' => 0, 'row' => 0], // SE (Top Left)
+            5 => ['col' => 1, 'row' => 1], // Center
+            6 => ['col' => 2, 'row' => 2], // NW (Bottom Right)
+            7 => ['col' => 2, 'row' => 1], // W (Right Middle)
+            8 => ['col' => 0, 'row' => 2], // NE (Bottom Left)
+            9 => ['col' => 1, 'row' => 0], // S (Top Center)
+            default => ['col' => 1, 'row' => 1],
+        };
     }
 
     public function getBaguaNotesData(): array
     {
         $fsFeature = auth()->user()->hasFeature('flying_stars');
 
-        return $this->floorPlan->baguaNotes->map(fn($n) => [
-            'gua' => $n->gua_number,
-            'col' => 2 - (($n->gua_number - 1) % 3),
-            'row' => 2 - floor(($n->gua_number - 1) / 3),
-            'data' => $this->decodeContent($n->content),
-            'assignments' => $n->roomAssignments->map(fn($a) => [
-                'id' => $a->id,
-                'person_name' => $a->familyMember ? $a->familyMember->name : ($a->customer ? $a->customer->name : '?'),
-                'type' => $a->familyMember ? 'family_member' : 'customer',
-                'ming_gua' => $a->familyMember ? $a->familyMember->life_gua : ($a->customer ? $a->customer->life_gua : null),
-                'element' => $a->familyMember ? (app(MingGuaCalculator::class)->getAttributes($a->familyMember->life_gua)['element'] ?? null) : ($a->customer ? (app(MingGuaCalculator::class)->getAttributes($a->customer->life_gua)['element'] ?? null) : null),
-                'colors' => $a->familyMember ? app(MingGuaCalculator::class)->getElementColors(app(MingGuaCalculator::class)->getAttributes($a->familyMember->life_gua)['element'] ?? '') : ($a->customer ? app(MingGuaCalculator::class)->getElementColors(app(MingGuaCalculator::class)->getAttributes($a->customer->life_gua)['element'] ?? '') : null),
-                'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($a->familyMember ? $a->familyMember->name : ($a->customer ? $a->customer->name : '?')),
-            ])->values()->toArray(),
-            'mountain_star' => $fsFeature ? $n->mountain_star : null,
-            'water_star' => $fsFeature ? $n->water_star : null,
-            'base_star' => $fsFeature ? $n->base_star : null,
-        ])->values()->toArray();
+        return $this->floorPlan->baguaNotes->map(function ($n) use ($fsFeature) {
+             $coords = $this->getGridCoordinates($n->gua_number);
+             return [
+                'gua' => $n->gua_number,
+                'col' => $coords['col'],
+                'row' => $coords['row'],
+                'data' => $this->decodeContent($n->content),
+                'assignments' => $n->roomAssignments->map(fn($a) => [
+                    'id' => $a->id,
+                    'person_name' => $a->familyMember ? $a->familyMember->name : ($a->customer ? $a->customer->name : '?'),
+                    'type' => $a->familyMember ? 'family_member' : 'customer',
+                    'ming_gua' => $a->familyMember ? $a->familyMember->life_gua : ($a->customer ? $a->customer->life_gua : null),
+                    'element' => $a->familyMember ? (app(MingGuaCalculator::class)->getAttributes($a->familyMember->life_gua)['element'] ?? null) : ($a->customer ? (app(MingGuaCalculator::class)->getAttributes($a->customer->life_gua)['element'] ?? null) : null),
+                    'colors' => $a->familyMember ? app(MingGuaCalculator::class)->getElementColors(app(MingGuaCalculator::class)->getAttributes($a->familyMember->life_gua)['element'] ?? '') : ($a->customer ? app(MingGuaCalculator::class)->getElementColors(app(MingGuaCalculator::class)->getAttributes($a->customer->life_gua)['element'] ?? '') : null),
+                    'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($a->familyMember ? $a->familyMember->name : ($a->customer ? $a->customer->name : '?')),
+                ])->values()->toArray(),
+                'mountain_star' => $fsFeature ? $n->mountain_star : null,
+                'water_star' => $fsFeature ? $n->water_star : null,
+                'base_star' => $fsFeature ? $n->base_star : null,
+            ];
+        })->values()->toArray();
     }
 
     private function decodeContent($content)
@@ -263,12 +320,26 @@ new class extends Component {
         }
 
         try {
-            app(MingGuaCalculator::class)->calculateClassicalBaguaForFloorPlan(
+            // Updated to use North Arrow Logic
+            $project = $this->floorPlan->project;
+            $compass = $project->compass_direction ?? 0;
+            $sitting = $project->sitting_direction; // Nullable
+
+            $result = app(MingGuaCalculator::class)->calculateClassicalBaguaForFloorPlan(
                 $this->floorPlan,
-                $this->ventilationDirection ?? 0
+                $compass,
+                $sitting
             );
+            
+            // Update Properties
+            $this->houseGroup = $result['house_group'] ?? '-';
+            $this->mountain = $result['mountain'] ?? '-'; // Sitting Mountain
+            // $this->facingMountain already set in result? 
+            // result keys: house_group, mountain, facing_mountain
+            $this->facingMountain = $result['facing_mountain'] ?? '-';
+
         } catch (Exception $e) {
-            Log::error('Bagua FEHLER', ['error' => $e->getMessage()]);
+            Log::error('Bagua ERROR', ['error' => $e->getMessage()]);
             $this->dispatch('notify', message: __('Error') . ': ' . $e->getMessage());
             return;
         }
@@ -278,6 +349,7 @@ new class extends Component {
         $this->baguaNotesCount = $this->floorPlan->baguaNotes()->count();
 
         $this->dispatch('bagua-updated', data: $this->getBaguaNotesData());
+        $this->dispatch('notify', message: __('Bagua grid calculated and saved!'));
     }
 };
 
@@ -303,9 +375,13 @@ new class extends Component {
 
             <div>
                 <h2 class="font-bold text-zinc-900 dark:text-white">{{ $floorPlan->title }}</h2>
-                <p class="text-xs text-zinc-400">
-                    {{ __('Adjust the grid to match the house corners.') }}
-                </p>
+                <div class="flex gap-2 text-xs text-zinc-500">
+                     <span>{{ __('Facing') }}: <strong class="text-zinc-700 dark:text-zinc-300">{{ $floorPlan->project->facing_direction }}° ({{ $facingMountain }})</strong></span>
+                     <span>&bull;</span>
+                     <span>{{ __('Sitting') }}: <strong class="text-zinc-700 dark:text-zinc-300">{{ $mountain }}</strong></span>
+                     <span>&bull;</span>
+                     <span>{{ __('Group') }}: <strong class="text-zinc-700 dark:text-zinc-300">{{ $houseGroup }}</strong></span>
+                </div>
             </div>
         </div>
 
@@ -385,8 +461,9 @@ new class extends Component {
                             $bgcolor = $data['bg_color'] ?? '#d1d5db';
                             $color = $data['color'] ?? '#6b7280';
 
-                            $row = 2 - floor(($guaNum - 1) / 3);
-                            $col = 2 - (($guaNum - 1) % 3);
+                            $coords = $this->getGridCoordinates($guaNum);
+                            $col = $coords['col'];
+                            $row = $coords['row'];
                         @endphp
 
                         <g>

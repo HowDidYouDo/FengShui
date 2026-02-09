@@ -1,8 +1,10 @@
 @php
     $fsService = app(\App\Services\Metaphysics\FlyingStarService::class);
+    $compass = $project->compass_direction ?? 0;
+    
     $chart = $fsService->calculateChart(
         $project->period,
-        $project->facing_direction,
+        $compass,
         $project->facing_mountain,
         (bool) $project->is_replacement_chart
     );
@@ -54,7 +56,7 @@
         <div class="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
             <span
                 class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{{ __('Facing Direction (°)') }}</span>
-            <div class="text-3xl font-black text-brand-orange">{{ $project->facing_direction }}°</div>
+            <div class="text-3xl font-black text-brand-orange">{{ $compass }}°</div>
             <p class="text-xs text-zinc-500 mt-1">{{ __('Mountain') }}:
                 <strong>{{ $project->facing_mountain ?: 'Auto' }}</strong></p>
         </div>

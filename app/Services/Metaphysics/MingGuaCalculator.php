@@ -363,7 +363,7 @@ class MingGuaCalculator
         if ($g === $y) {
             return [
                 'type' => __('Same'),
-                'quality' => __('Good'),
+                'quality' => 'Good',
                 'label' => __('Harmonious'),
                 'desc' => __('Your birth year supports your Life Gua directly. You have a strong energetic foundation.'),
                 'color' => 'text-blue-600 bg-blue-50'
@@ -385,7 +385,7 @@ class MingGuaCalculator
         if (($yIndex + 1) % 5 === $gIndex) {
             return [
                 'type' => __('Resource'),
-                'quality' => __('Excellent'),
+                'quality' => 'Excellent',
                 'label' => __('Nourishing'),
                 'desc' => __('Your birth year nourishes your Life Gua (Resource). This indicates natural support and good vitality.'),
                 'color' => 'text-green-600 bg-green-50'
@@ -397,7 +397,7 @@ class MingGuaCalculator
         if (($gIndex + 1) % 5 === $yIndex) {
             return [
                 'type' => __('Output'),
-                'quality' => __('Neutral'),
+                'quality' => 'Neutral',
                 'label' => __('Draining'),
                 'desc' => __('Your Life Gua feeds your birth year. You are generous, but may tire easily. Watch your energy levels.'),
                 'color' => 'text-amber-600 bg-amber-50'
@@ -409,7 +409,7 @@ class MingGuaCalculator
         if (($yIndex + 2) % 5 === $gIndex) {
             return [
                 'type' => __('Control'),
-                'quality' => __('Challenging'),
+                'quality' => 'Challenging',
                 'label' => __('Controlling'),
                 'desc' => __('Your birth year controls your Life Gua. You may face internal pressure or high expectations. Discipline helps you.'),
                 'color' => 'text-red-600 bg-red-50'
@@ -421,7 +421,7 @@ class MingGuaCalculator
         if (($gIndex + 2) % 5 === $yIndex) {
             return [
                 'type' => __('Wealth'),
-                'quality' => __('Mixed'),
+                'quality' => 'Mixed',
                 'label' => __('Dominating'),
                 'desc' => __('Your Life Gua controls your birth year. You strive for control and achievement, but this requires effort.'),
                 'color' => 'text-purple-600 bg-purple-50'
@@ -575,17 +575,31 @@ class MingGuaCalculator
         return $result;
     }
 
-    public function calculateClassicalBaguaForFloorPlan(FloorPlan $floorPlan, ?float $direction = null): array
+    public function calculateClassicalBaguaForFloorPlan(FloorPlan $floorPlan, ?float $compassDirection = null, ?float $sittingDirection = null): array
     {
         if (!$floorPlan->project || !$floorPlan->project->hasValidDirection()) {
             return ['error' => 'No valid project direction'];
         }
 
         $project = $floorPlan->project;
-        $direction = $direction ?? $project->getActiveDirection();
-        $sitzGua = $this->ventilationToSitzGua($direction);
-        $baguaGrid = $this->rotateBaguaGrid($sitzGua);
+        
+        // Determine Directions
+        $compass = $compassDirection ?? $project->compass_direction;
+        $sitting = $sittingDirection ?? $project->sitting_direction;
+        
+        // Fallback for Sitting if not provided
+        if ($sitting === null && $compass !== null) {
+            $sitting = fmod($compass + 180, 360);
+        }
 
+        // 1. Calculate Trigrams (House Group) based on Sitting
+        $sitzGua = $this->degreesToTrigram($sitting);
+        $houseGroup = $this->calculateHouseGroup($sitzGua);
+        
+        // 2. Rotate Grid based on Compass (Facing Logic)
+        $facingTrigramForGrid = $this->degreesToTrigram($compass);
+        $baguaGrid = $this->rotateBaguaGrid($facingTrigramForGrid);
+        
         // Flying Stars Logic
         $flyingStars = null;
         $user = Auth::user();
@@ -593,23 +607,20 @@ class MingGuaCalculator
             $fsService = app(FlyingStarService::class);
             $flyingStars = $fsService->calculateChart(
                 $project->period,
-                $project->facing_direction,
-                $project->facing_mountain, // Pass the override if set
+                $project->compass_direction, // Uses Compass
+                $project->facing_mountain, 
                 (bool)$project->is_replacement_chart
             );
-
-            // Update Project with FS info if not yet set (and not overridden)
-            if (!$project->facing_mountain) {
-                // If we detected replacement needed but didn't calculate with it, do it now
+            
+             if (!$project->facing_mountain) {
                 if ($flyingStars['needs_replacement'] && !$project->is_replacement_chart) {
                     $flyingStars = $fsService->calculateChart(
                         $project->period,
-                        $project->facing_direction,
+                        $project->compass_direction,
                         $project->facing_mountain,
                         true
                     );
                 }
-
                 $project->update([
                     'facing_mountain' => $flyingStars['facing_mountain'],
                     'is_replacement_chart' => $flyingStars['needs_replacement']
@@ -621,16 +632,17 @@ class MingGuaCalculator
         $floorPlan->baguaNotes()->delete();
 
         $results = [];
+
         foreach ($baguaGrid as $position => $gua) {
             if ($position != 5 && $gua !== null) {
+                // $gua is the actual Trigram (e.g. 1=Kan) at this Grid Position (e.g. 1=Front)
                 $trigramData = self::CLASSICAL_TRIGRAMS[$gua];
 
                 $data = [
                     'floor_plan_id' => $floorPlan->id,
-                    'gua_number' => $position,
+                    'gua_number' => $position, // The Grid Position (1-9)
                 ];
 
-                // Add Flying Stars to Note if available
                 if ($flyingStars) {
                     $data['mountain_star'] = $flyingStars['mountain'][$gua] ?? null;
                     $data['water_star'] = $flyingStars['water'][$gua] ?? null;
@@ -638,19 +650,17 @@ class MingGuaCalculator
                 }
 
                 $data['content'] = json_encode([
-                    'gua_number' => $position,
-                    'trigram_gua' => $gua,
+                    'gua_number' => $position, 
+                    'trigram_gua' => $gua,     
                     'name' => $trigramData['name'],
                     'symbol' => $trigramData['symbol'],
                     'direction' => $trigramData['direction'],
                     'element' => $trigramData['element'],
                     'color' => $trigramData['color'],
                     'bg_color' => $trigramData['bg_color'],
-                    'ventilation_degrees' => $direction,
+                    'ventilation_degrees' => $compass, // Actually compass degrees now
                     'sitz_gua' => $sitzGua,
                     'direction_type' => $project->getDirectionType(),
-                    'mountain_flight_direction' => $flyingStars['mountain_flight_direction'] ?? null,
-                    'water_flight_direction' => $flyingStars['water_flight_direction'] ?? null,
                 ]);
 
                 $baguaNote = BaguaNote::create($data);
@@ -661,57 +671,159 @@ class MingGuaCalculator
         return [
             'grid' => $baguaGrid,
             'sitz_gua' => $sitzGua,
-            'ventilation_degrees' => $direction,
+            'facing_gua' => $facingTrigramForGrid,
+            'house_group' => $houseGroup, // 'East'/'West'
+            'mountain' => $this->calculateMountain($sitting), // e.g. "Ost, 1/3"
+            'facing_mountain' => $this->calculateMountain($compass), // e.g. "Nord, 3/3"
+            'compass_degrees' => $compass,
             'notes_count' => count($results),
             'flying_stars' => (bool)$flyingStars,
         ];
     }
 
-    public function ventilationToSitzGua(float $ventilationDegrees): int
+    public function degreesToTrigram(float $degrees): int
     {
-        $ventilationRanges = [
-            [337.5, 22.5, 9],   // N=LI
-            [22.5, 67.5, 2],    // NE=KUN
-            [67.5, 112.5, 7],   // E=TUI
-            [112.5, 157.5, 6],  // SE=CHIEN
-            [157.5, 202.5, 1],  // S=KAN
-            [202.5, 247.5, 8],  // SW=KEN
-            [247.5, 292.5, 3],  // W=CHEN
-            [292.5, 337.5, 4],  // NW=SUN
+        $ranges = [
+            [337.5, 22.5, 1],   // N = Kan (1)
+            [22.5, 67.5, 8],    // NE = Gen (8)
+            [67.5, 112.5, 3],   // E = Zhen (3)
+            [112.5, 157.5, 4],  // SE = Xun (4)
+            [157.5, 202.5, 9],  // S = Li (9)
+            [202.5, 247.5, 2],  // SW = Kun (2)
+            [247.5, 292.5, 7],  // W = Dui (7)
+            [292.5, 337.5, 6],  // NW = Qian (6)
         ];
 
-        $normalized = fmod($ventilationDegrees + 360, 360);
+        $normalized = fmod($degrees + 360, 360);
 
-        foreach ($ventilationRanges as [$min, $max, $sitzGua]) {
-            if ($normalized >= $min && $normalized < $max) {
-                return $sitzGua;
+        foreach ($ranges as [$min, $max, $gua]) {
+            if ($min > $max) {
+                if ($normalized >= $min || $normalized < $max) return $gua;
+            } else {
+                if ($normalized >= $min && $normalized < $max) return $gua;
             }
         }
-        return 9; // Default LI
+        return 1;
+    }
+    
+    public function calculateHouseGroup(int $sitzGua): string
+    {
+         return in_array($sitzGua, [1, 3, 4, 9]) ? 'East' : 'West';
     }
 
-    private function rotateBaguaGrid(int $sitzGua): array
+    public function calculateMountain(float $degrees): string
     {
-        $positions = [2, 3, 6, 9, 8, 7, 4, 1]; // Clockwise skip 5
-        $grid = [];
-        $currentGua = $sitzGua;
+        // 24 Mountains: Each direction (N, NE, E...) has 3 sub-sectors (1, 2, 3)
+        // N spans 337.5 to 22.5. 
+        // N1: 337.5 - 352.5 (North, 1/3) -> Ren & Zi & Gui mappings... but simplified:
+        // N1 (Ren), N2 (Zi), N3 (Gui)
+        
+        // Logical Index 0..23 starting near N2 essentially?
+        // Let's stick to simple degree ranges to ensure "1/3" is correct.
+        
+        // Define centers of Directions:
+        // N: 0 (360), NE: 45, E: 90, SE: 135, S: 180, SW: 225, W: 270, NW: 315
+        // Each sector is +/- 22.5 deg.
+        // Within sector: 
+        // 1/3: [Center - 22.5, Center - 7.5)
+        // 2/3: [Center - 7.5, Center + 7.5)
+        // 3/3: [Center + 7.5, Center + 22.5)
 
-        foreach ($positions as $position) {
-            $grid[$position] = $currentGua;
-            $currentGua = $this->getNextTrigram($currentGua);
+        $normalized = fmod($degrees + 360, 360);
+        
+        $directions = [
+            0 => __('North'), 45 => __('Northeast'), 90 => __('East'), 135 => __('Southeast'), 
+            180 => __('South'), 225 => __('Southwest'), 270 => __('West'), 315 => __('Northwest')
+        ];
+
+        foreach ($directions as $center => $label) {
+            // Check if degrees fall within this 45-degree sector
+            // Handle North wrap-around carefully
+            $min = fmod($center - 22.5 + 360, 360);
+            $max = fmod($center + 22.5 + 360, 360);
+
+            $inRange = false;
+            if ($min > $max) { // Wrap around 0/360
+                 if ($normalized >= $min || $normalized < $max) $inRange = true;
+            } else {
+                 if ($normalized >= $min && $normalized < $max) $inRange = true;
+            }
+
+            if ($inRange) {
+                // Determine Third
+                // Calculate delta from sector start ($min)
+                // Distance from min:
+                $dist = $normalized - $min;
+                if ($dist < 0) $dist += 360; // Handle wrap
+                
+                if ($dist < 15) return "$label, 1/3";
+                if ($dist < 30) return "$label, 2/3";
+                return "$label, 3/3";
+            }
         }
 
-        $grid[5] = null; // Center empty
+        return 'Unknown';
+    }
+
+    private function rotateBaguaGrid(int $facingTrigram): array
+    {
+        // Grid Path (CCW from Bottom): 1 -> 6 -> 7 -> 2 -> 9 -> 4 -> 3 -> 8
+        $gridPath = [1, 6, 7, 2, 9, 4, 3, 8];
+        // Trigram Sequence (N->NE->E...): 1 -> 8 -> 3 -> 4 -> 9 -> 2 -> 7 -> 6
+        $trigramSeq = [1, 8, 3, 4, 9, 2, 7, 6];
+        
+        $startIndex = array_search($facingTrigram, $trigramSeq);
+        if ($startIndex === false) $startIndex = 0;
+        
+        $grid = [];
+        $count = count($trigramSeq);
+        for ($i = 0; $i < $count; $i++) {
+            $grid[$gridPath[$i]] = $trigramSeq[($startIndex + $i) % $count];
+        }
+        $grid[5] = null;
         return $grid;
     }
 
-    // === MAIN BAGUA METHOD ===
-
-    private function getNextTrigram(int $currentGua): int
+    public function getBestDirection(int $gua): array
     {
-        $sequence = [1, 8, 3, 4, 9, 2, 7, 6]; // KAN→KEN→CHEN→SUN→LI→KUN→TUI→CHIEN
-        $index = array_search($currentGua, $sequence);
-        return $sequence[($index + 1) % count($sequence)];
+        $attr = $this->getAttributes($gua);
+        $bestDir = null;
+        $bestLabel = null;
+
+        foreach ($attr['good_directions'] as $dir => $label) {
+            if (str_contains($label, 'Sheng Qi')) {
+                $bestDir = $dir;
+                $bestLabel = $label;
+                break;
+            }
+        }
+
+        if (!$bestDir) {
+            // Fallback to first if not found (should not happen)
+            $bestDir = array_key_first($attr['good_directions']);
+            $bestLabel = $attr['good_directions'][$bestDir];
+        }
+
+        return [
+            'direction' => $bestDir,
+            'label' => $bestLabel,
+            'degrees' => $this->getDirectionDegrees($bestDir)
+        ];
     }
 
+    public function getDirectionDegrees(string $direction): string
+    {
+        $ranges = [
+            'N' => '337.5° - 22.5°',
+            'NE' => '22.5° - 67.5°',
+            'E' => '67.5° - 112.5°',
+            'SE' => '112.5° - 157.5°',
+            'S' => '157.5° - 202.5°',
+            'SW' => '202.5° - 247.5°',
+            'W' => '247.5° - 292.5°',
+            'NW' => '292.5° - 337.5°',
+        ];
+
+        return $ranges[$direction] ?? '';
+    }
 }

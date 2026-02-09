@@ -15,7 +15,8 @@ class Project extends Model
         'customer_id',
         'name',
         'settled_year',
-        'facing_direction',
+        'compass_direction',
+        'sitting_direction',
         'ventilation_direction',
         'period',
         'use_facing_direction',
@@ -26,7 +27,8 @@ class Project extends Model
 
     protected $casts = [
         'settled_year' => 'integer',
-        'facing_direction' => 'decimal:4',
+        'compass_direction' => 'decimal:4',
+        'sitting_direction' => 'decimal:4',
         'ventilation_direction' => 'decimal:4',
         'period' => 'integer',
         'use_facing_direction' => 'boolean',
@@ -65,8 +67,15 @@ class Project extends Model
      */
     public function getActiveDirection(): ?float
     {
-        return $this->use_facing_direction
-            ? $this->facing_direction
-            : $this->ventilation_direction;
+         // If "Use Facing" (Compass) is checked, or if we have it.
+         // Logic: Compass Direction is the rotation.
+         return $this->use_facing_direction
+            ? $this->compass_direction
+            : $this->ventilation_direction; // Legacy fallback?
+    }
+
+    public function getSittingDirection(): ?float
+    {
+        return $this->sitting_direction;
     }
 }

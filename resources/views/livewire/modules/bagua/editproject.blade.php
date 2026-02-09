@@ -13,8 +13,9 @@ new class extends Component {
     // Form Fields
     public $name;
     public $settled_year;
-    public $facing_direction;
-    public $ventilation_direction; // Optional, falls man es erfassen will
+    public $compass_direction;
+    public $sitting_direction;
+    public $ventilation_direction;
     public $facing_mountain;
     public $is_replacement_chart;
     public $special_chart_type;
@@ -31,7 +32,8 @@ new class extends Component {
 
         $this->name = $project->name;
         $this->settled_year = $project->settled_year;
-        $this->facing_direction = $project->facing_direction;
+        $this->compass_direction = $project->compass_direction;
+        $this->sitting_direction = $project->sitting_direction;
         $this->ventilation_direction = $project->ventilation_direction;
         $this->facing_mountain = $project->facing_mountain;
         $this->is_replacement_chart = $project->is_replacement_chart;
@@ -47,21 +49,21 @@ new class extends Component {
         $this->validate([
             'name' => 'required|string|max:255',
             'settled_year' => 'required|integer|min:1900|max:2100',
-            'facing_direction' => 'required|numeric|min:0|max:360',
+            'compass_direction' => 'required|numeric|min:0|max:360',
+            'sitting_direction' => 'nullable|numeric|min:0|max:360',
             'ventilation_direction' => 'nullable|numeric|min:0|max:360',
             'facing_mountain' => 'nullable|string',
             'is_replacement_chart' => 'boolean',
             'special_chart_type' => 'nullable|string|max:255',
         ]);
 
-        // Periode berechnen (Feng Shui Logik)
-        // 1984-2003: 7, 2004-2023: 8, 2024-2043: 9
         $period = $this->calculatePeriod($this->settled_year);
 
         $this->project->update([
             'name' => $this->name,
             'settled_year' => $this->settled_year,
-            'facing_direction' => $this->facing_direction,
+            'compass_direction' => $this->compass_direction,
+            'sitting_direction' => $this->sitting_direction,
             'ventilation_direction' => $this->ventilation_direction,
             'period' => $period,
             'facing_mountain' => $this->facing_mountain,
@@ -70,8 +72,6 @@ new class extends Component {
         ]);
 
         $this->showModal = false;
-
-        // Events feuern, damit Parent Components aktualisieren
         $this->dispatch('project-updated');
     }
 
@@ -138,18 +138,25 @@ new class extends Component {
                     </h4>
 
                     <div class="grid grid-cols-2 gap-6">
-                        <!-- FACING -->
+                        <!-- COMPASS (FACING) -->
                         <div class="space-y-1">
-                            <flux:input wire:model="facing_direction" type="number" step="0.01"
-                                        :label="__('Facing Direction (°)')" placeholder="0.00" required/>
-                            <p class="text-[10px] text-zinc-400">{{ __('The direction the house faces (Yang side).') }}
+                            <flux:input wire:model="compass_direction" type="number" step="0.01"
+                                        :label="__('North Deviation (Compass / Facing) (°)')" placeholder="0.00" required/>
+                            <p class="text-[10px] text-zinc-400">{{ __('Compass reading causing the North deviation.') }}
                             </p>
+                        </div>
+
+                        <!-- SITTING -->
+                        <div class="space-y-1">
+                            <flux:input wire:model="sitting_direction" type="number" step="0.01"
+                                        :label="__('Sitting Direction (°)')" placeholder="0.00"/>
+                            <p class="text-[10px] text-zinc-400">{{ __('Defines the house energy (Trigram). Leave empty to derive from Compass (opposite).') }}</p>
                         </div>
 
                         <!-- VENTILATION -->
                         <div class="space-y-1">
                             <flux:input wire:model="ventilation_direction" type="number" step="0.01"
-                                        :label="__('Ventilation Direction (°)')" placeholder="0.00" required/>
+                                        :label="__('Ventilation Direction (°)')" placeholder="0.00"/>
                             <p class="text-[10px] text-zinc-400">{{ __('Main airflow/ventilation direction.') }}</p>
                         </div>
                     </div>
