@@ -156,15 +156,23 @@
                             </div>
                         </div>
 
-                        {{-- System --}}
-                        <flux:separator text="{{ __('System') }}" class="mt-8" />
+                        @php
+                            $hasOtherSelf = auth()->user()->customers()
+                                ->where('is_self_profile', true)
+                                ->where('id', '!=', $editingCustomerId)
+                                ->exists();
+                        @endphp
 
-                        <flux:checkbox
-                            wire:model="is_self_profile"
-                            label="{{ __('Is Self Profile') }}"
-                            description="{{ __('Mark this if this customer represents the consultant themselves.') }}"
-                            disabled
-                        />
+                        @if(!$hasOtherSelf)
+                            {{-- System --}}
+                            <flux:separator text="{{ __('System') }}" class="mt-8" />
+
+                            <flux:checkbox
+                                wire:model="is_self_profile"
+                                label="{{ __('Is Self Profile') }}"
+                                description="{{ __('Mark this if this customer represents the consultant themselves.') }}"
+                            />
+                        @endif
                     </div>
 
                     {{-- Footer --}}

@@ -103,6 +103,12 @@ class Index extends Component
             return;
         }
 
+        // Check for existing self profile if trying to create one
+        if ($this->is_self_profile && $user->customers()->where('is_self_profile', true)->exists()) {
+            $this->addError('is_self_profile', __('You already have a self profile.'));
+            return;
+        }
+
         $user->customers()->create([
             'name' => $this->name,
             'email' => $this->email,
@@ -164,6 +170,12 @@ class Index extends Component
             abort(403);
         }
 
+        // Check for existing self profile if trying to set this one as self
+        if ($this->is_self_profile && ! $customer->is_self_profile && Auth::user()->customers()->where('is_self_profile', true)->exists()) {
+            $this->addError('is_self_profile', __('You already have a self profile.'));
+            return;
+        }
+
         $customer->update([
             'name' => $this->name,
             'email' => $this->email,
@@ -176,7 +188,7 @@ class Index extends Component
             'billing_zip' => $this->billing_zip,
             'billing_city' => $this->billing_city,
             'billing_country' => $this->billing_country,
-            // is_self_profile kann NICHT geändert werden (disabled im Form)
+            'is_self_profile' => $this->is_self_profile,
         ]);
 
         $this->resetForm();

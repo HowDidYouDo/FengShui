@@ -60,7 +60,7 @@
             <div class="text-center md:text-left z-10">
                 <span
                     class="inline-block py-1 px-3 rounded-full bg-brand-blue-light text-brand-blue text-sm font-medium mb-6 border border-blue-100">
-                    Eike & Xanny
+                    {{ __('Eike & Xanny') }}
                 </span>
 
                 <h1 class="text-5xl lg:text-6xl font-bold text-slate-800 mb-6 serif leading-tight">
@@ -199,7 +199,7 @@
             </p>
             <div class="mt-6 flex items-center justify-center gap-3">
                 <div class="w-8 h-1 bg-brand-orange rounded-full"></div>
-                <p class="text-slate-500 font-medium">Eike & Xanny</p>
+                <p class="text-slate-500 font-medium">{{ __('Eike & Xanny') }}</p>
             </div>
         </div>
     </div>

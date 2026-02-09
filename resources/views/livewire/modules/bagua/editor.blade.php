@@ -405,7 +405,7 @@ new class extends Component {
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium truncate text-zinc-900 dark:text-gray-200"
                                     x-text="member.name"></p>
-                                <p class="text-xs text-zinc-500" x-show="member.ming_gua">Gua: <span
+                                <p class="text-xs text-zinc-500" x-show="member.ming_gua">{{ __('Gua') }}: <span
                                         x-text="member.ming_gua"></span></p>
                             </div>
                         </div>
