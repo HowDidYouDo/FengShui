@@ -39,34 +39,9 @@ new class extends Component {
         $this->familyMembers = [];
 
         if ($customer) {
-            // Add Main Customer
-            $guaAttr = $customer->life_gua ? app(MingGuaCalculator::class)->getAttributes($customer->life_gua) : null;
-            $elementColors = $guaAttr ? app(MingGuaCalculator::class)->getElementColors($guaAttr['element']) : null;
-
-            $this->familyMembers[] = [
-                'id' => $customer->id,
-                'name' => $customer->name . ' (' . __('Owner') . ')',
-                'type' => 'customer',
-                'ming_gua' => $customer->life_gua,
-                'element' => $guaAttr['element'] ?? null,
-                'colors' => $elementColors,
-                'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($customer->name) . '&background=random'
-            ];
-
-            // Add Family Members
+            $this->addPersonToFamilyMembers($customer, 'customer', __('Owner'));
             foreach ($customer->familyMembers as $member) {
-                $mGuaAttr = $member->life_gua ? app(MingGuaCalculator::class)->getAttributes($member->life_gua) : null;
-                $mElementColors = $mGuaAttr ? app(MingGuaCalculator::class)->getElementColors($mGuaAttr['element']) : null;
-
-                $this->familyMembers[] = [
-                    'id' => $member->id,
-                    'name' => $member->name,
-                    'type' => 'family_member',
-                    'ming_gua' => $member->life_gua,
-                    'element' => $mGuaAttr['element'] ?? null,
-                    'colors' => $mElementColors,
-                    'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($member->name) . '&background=random'
-                ];
+                $this->addPersonToFamilyMembers($member, 'family_member');
             }
         }
     }
@@ -124,11 +99,36 @@ new class extends Component {
         }
 
         // 4. Create Assignment
-        RoomAssignment::create([
+        $assignment = RoomAssignment::create([
             'bagua_note_id' => $baguaNote->id,
             'customer_id' => $type === 'customer' ? $id : null,
             'family_member_id' => $type === 'family_member' ? $id : null,
         ]);
+
+        // 5. Calculate and store suitability rating
+        $person = $type === 'customer'
+            ? $this->floorPlan->project->customer
+            : $this->floorPlan->project->customer->familyMembers()->find($id);
+
+        if ($person && $person->life_gua && $baguaNote->gua_number) {
+            $comp = app(MingGuaCalculator::class)->analyzeCompatibility($person->life_gua, $baguaNote->gua_number);
+
+            // Map Rating (A+, A1, D4 etc) to numeric rating 1-5 if needed,
+            // but the DB field suitability_rating is unsignedTinyInteger.
+            // Let's store a numeric representation or just keep it for now.
+            // The user said "suitability_rating (Integer, 1-5)" in previous issue.
+
+            $numericRating = 0;
+            if (isset($comp['rating'])) {
+                if ($comp['rating'] === 'A+') $numericRating = 5;
+                elseif ($comp['rating'] === 'A1') $numericRating = 4;
+                elseif ($comp['rating'] === 'A2') $numericRating = 3;
+                elseif ($comp['rating'] === 'A3') $numericRating = 2;
+                elseif (str_starts_with($comp['rating'], 'D')) $numericRating = 1;
+            }
+
+            $assignment->update(['suitability_rating' => $numericRating]);
+        }
 
         $this->refreshAndDispatch();
         $this->dispatch('notify', message: __('Assigned successfully!'));
@@ -155,7 +155,53 @@ new class extends Component {
     private function refreshAndDispatch()
     {
         $this->floorPlan->load(['baguaNotes.roomAssignments.familyMember', 'baguaNotes.roomAssignments.customer']);
-        $this->dispatch('bagua-updated', data: $this->getBaguaNotesData());
+
+        // Refresh familyMembers list to update compatibility status in sidebar
+        $customer = $this->floorPlan->project->customer;
+        $this->familyMembers = [];
+        if ($customer) {
+            $this->addPersonToFamilyMembers($customer, 'customer', __('Owner'));
+            foreach ($customer->familyMembers as $member) {
+                $this->addPersonToFamilyMembers($member, 'family_member');
+            }
+        }
+
+        $this->dispatch('bagua-updated',
+            data: $this->getBaguaNotesData(),
+            familyMembers: $this->familyMembers
+        );
+    }
+
+    private function addPersonToFamilyMembers($person, $type, $suffix = '')
+    {
+        $guaAttr = $person->life_gua ? app(MingGuaCalculator::class)->getAttributes($person->life_gua) : null;
+        $elementColors = $guaAttr ? app(MingGuaCalculator::class)->getElementColors($guaAttr['element']) : null;
+
+        // Find assignment for this person on this floor plan
+        $assignment = RoomAssignment::whereIn('bagua_note_id', $this->floorPlan->baguaNotes->pluck('id'))
+            ->where($type . '_id', $person->id)
+            ->first();
+
+        $compatibility = null;
+        $assignedRoom = null;
+
+        if ($assignment && $assignment->baguaNote) {
+            $compatibility = app(MingGuaCalculator::class)->analyzeCompatibility($person->life_gua, $assignment->baguaNote->gua_number);
+            $noteData = $this->decodeContent($assignment->baguaNote->content);
+            $assignedRoom = ($noteData['direction'] ?? '') . ' (' . ($noteData['name'] ?? '') . ')';
+        }
+
+        $this->familyMembers[] = [
+            'id' => $person->id,
+            'name' => $person->name . ($suffix ? ' (' . $suffix . ')' : ''),
+            'type' => $type,
+            'ming_gua' => $person->life_gua,
+            'element' => $guaAttr['element'] ?? null,
+            'colors' => $elementColors,
+            'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($person->name) . '&background=random',
+            'compatibility' => $compatibility,
+            'assigned_room' => $assignedRoom
+        ];
     }
 
     public function saveBounds($bounds): void
@@ -178,6 +224,8 @@ new class extends Component {
 
     public function getBaguaNotesData(): array
     {
+        $fsFeature = auth()->user()->hasFeature('flying_stars');
+
         return $this->floorPlan->baguaNotes->map(fn($n) => [
             'gua' => $n->gua_number,
             'col' => 2 - (($n->gua_number - 1) % 3),
@@ -190,8 +238,11 @@ new class extends Component {
                 'ming_gua' => $a->familyMember ? $a->familyMember->life_gua : ($a->customer ? $a->customer->life_gua : null),
                 'element' => $a->familyMember ? (app(MingGuaCalculator::class)->getAttributes($a->familyMember->life_gua)['element'] ?? null) : ($a->customer ? (app(MingGuaCalculator::class)->getAttributes($a->customer->life_gua)['element'] ?? null) : null),
                 'colors' => $a->familyMember ? app(MingGuaCalculator::class)->getElementColors(app(MingGuaCalculator::class)->getAttributes($a->familyMember->life_gua)['element'] ?? '') : ($a->customer ? app(MingGuaCalculator::class)->getElementColors(app(MingGuaCalculator::class)->getAttributes($a->customer->life_gua)['element'] ?? '') : null),
-                'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($a->familyMember ? $a->familyMember->name : ($a->customer ? $a->customer->name : '?'))
-            ])->values()->toArray()
+                'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($a->familyMember ? $a->familyMember->name : ($a->customer ? $a->customer->name : '?')),
+            ])->values()->toArray(),
+            'mountain_star' => $fsFeature ? $n->mountain_star : null,
+            'water_star' => $fsFeature ? $n->water_star : null,
+            'base_star' => $fsFeature ? $n->base_star : null,
         ])->values()->toArray();
     }
 
@@ -261,7 +312,7 @@ new class extends Component {
         <!-- Ventilation Direction Input -->
         <div class="flex items-center gap-2 ml-4">
             <label class="text-sm text-zinc-600 dark:text-zinc-400">
-                {{ __('Ventilation Direction') }}:
+                {{ __('Ventilation Direction (°)') }}:
             </label>
             <input type="number" wire:model.live="ventilationDirection" min="0" max="360" step="1"
                 class="w-20 px-2 py-1 text-sm border border-zinc-300 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white"
@@ -349,6 +400,36 @@ new class extends Component {
                             <text :x="toView(h.x1 + ({{ $col }} + 0.5) * (h.x2-h.x1)/3)"
                                 :y="toView(h.y1 + ({{ $row }} + 0.5) * (h.y2-h.y1)/3) + 4" font-size="16" font-weight="700"
                                 fill="{{ $color }}" text-anchor="middle">{{ $trigram }}</text>
+
+                            <!-- Flying Stars DISPLAY -->
+                            @if(auth()->user()->hasFeature('flying_stars'))
+                                <g class="flying-stars text-[11px] font-black">
+                                    {{-- White glow/halo for better contrast --}}
+                                    <text :x="toView(h.x1 + {{ $col }} * (h.x2-h.x1)/3) + 8"
+                                          :y="toView(h.y1 + {{ $row }} * (h.y2-h.y1)/3) + 30"
+                                          fill="white" stroke="white" stroke-width="2" stroke-linejoin="round"
+                                          x-text="note.mountain_star" x-show="note.mountain_star"></text>
+                                    <text :x="toView(h.x1 + {{ $col }} * (h.x2-h.x1)/3) + 8"
+                                          :y="toView(h.y1 + {{ $row }} * (h.y2-h.y1)/3) + 30"
+                                          fill="#b45309" x-text="note.mountain_star" x-show="note.mountain_star"></text>
+
+                                    <text :x="toView(h.x1 + ({{ $col }} + 1) * (h.x2-h.x1)/3) - 14"
+                                          :y="toView(h.y1 + {{ $row }} * (h.y2-h.y1)/3) + 30"
+                                          fill="white" stroke="white" stroke-width="2" stroke-linejoin="round"
+                                          x-text="note.water_star" x-show="note.water_star"></text>
+                                    <text :x="toView(h.x1 + ({{ $col }} + 1) * (h.x2-h.x1)/3) - 14"
+                                          :y="toView(h.y1 + {{ $row }} * (h.y2-h.y1)/3) + 30"
+                                          fill="#1d4ed8" x-text="note.water_star" x-show="note.water_star"></text>
+
+                                    <text :x="toView(h.x1 + ({{ $col }} + 0.5) * (h.x2-h.x1)/3)"
+                                          :y="toView(h.y1 + ({{ $row }} + 1) * (h.y2-h.y1)/3) - 8"
+                                          fill="white" stroke="white" stroke-width="2" stroke-linejoin="round"
+                                          text-anchor="middle" x-text="note.base_star" x-show="note.base_star"></text>
+                                    <text :x="toView(h.x1 + ({{ $col }} + 0.5) * (h.x2-h.x1)/3)"
+                                          :y="toView(h.y1 + ({{ $row }} + 1) * (h.y2-h.y1)/3) - 8"
+                                          fill="#52525b" text-anchor="middle" x-text="note.base_star" x-show="note.base_star"></text>
+                                </g>
+                            @endif
                         </g>
                     @endforeach
                 </svg>
@@ -370,6 +451,7 @@ new class extends Component {
                                 <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-[10px] font-bold"
                                      :class="assign.colors ? assign.colors[0] : 'text-zinc-500'"
                                      x-text="assign.ming_gua"></div>
+
                                 <button @click="$wire.removeAssignment(assign.id)"
                                     class="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-sm opacity-0 group-hover:opacity-100 transition-all transform z-10 cursor-pointer">
                                     &times;
@@ -420,9 +502,21 @@ new class extends Component {
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-bold truncate text-zinc-900 dark:text-gray-100"
                                     x-text="member.name"></p>
-                                <p class="text-[10px] uppercase tracking-wider font-semibold opacity-70"
-                                   :class="member.colors ? member.colors[0] : 'text-zinc-500'"
-                                   x-text="member.element || '{{ __('Unknown') }}'"></p>
+                                <div class="flex items-center justify-between">
+                                    <p class="text-[10px] uppercase tracking-wider font-semibold opacity-70"
+                                       :class="member.colors ? member.colors[0] : 'text-zinc-500'"
+                                       x-text="member.element || '{{ __('Unknown') }}'"></p>
+
+                                    <template x-if="member.compatibility">
+                                        <div class="px-1.5 py-0.5 rounded text-[10px] font-black shadow-sm border"
+                                             :class="member.compatibility.class"
+                                             :title="member.compatibility.quality + ': ' + member.compatibility.description"
+                                             x-text="member.compatibility.rating"></div>
+                                    </template>
+                                </div>
+                                <template x-if="member.assigned_room">
+                                    <p class="text-[9px] text-zinc-400 mt-1 truncate" x-text="member.assigned_room"></p>
+                                </template>
                             </div>
                         </div>
                     </template>
@@ -459,6 +553,10 @@ new class extends Component {
                 window.addEventListener('bagua-updated', (event) => {
                     console.log('Bagua Updated:', event.detail.data);
                     this.baguaNotes = event.detail.data;
+                    // Force refresh of familyMembers since they are passed via config initially
+                    if (event.detail.familyMembers) {
+                        this.familyMembers = event.detail.familyMembers;
+                    }
                 });
             },
 

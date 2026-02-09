@@ -1,26 +1,44 @@
 {
-    "$schema": "https://www.schemastore.org/package.json",
-    "private": true,
-    "type": "module",
-    "scripts": {
-        "build": "vite build",
-        "dev": "vite"
-    },
-    "dependencies": {
-        "autoprefixer": "^10.4.20",
-        "axios": "^1.7.4",
-        "concurrently": "^9.0.1",
-        "laravel-vite-plugin": "^2.0",
-        "vite": "^7.0.4"
-    },
-    "optionalDependencies": {
-        "@rollup/rollup-linux-x64-gnu": "4.9.5",
-        "@tailwindcss/oxide-linux-x64-gnu": "^4.0.1",
-        "lightningcss-linux-x64-gnu": "^1.29.1"
-    },
-    "devDependencies": {
-        "@tailwindcss/vite": "^4.1.17",
-        "daisyui": "^5.5.8",
-        "tailwindcss": "^4.1.17"
-    }
+  "$schema": "https://www.schemastore.org/package.json",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "i18n:extract": "node ./scripts/extract-i18n.js",
+    "i18n:rewrite": "node ./scripts/replace-i18n.js",
+    "i18n:sync": "node ./scripts/sync-i18n.js",
+    "i18n:fix-untranslated": "node ./scripts/fix-untranslated.js",
+    "i18n:rewrite-blade": "node ./scripts/rewrite-i18n-blade.js",
+    "i18n:cleanup-unused": "node ./scripts/cleanup-i18n-unused.js",
+    "i18n:restore-invalid": "node ./scripts/restore-i18n-invalid.js",
+    "postbuild": "npm run i18n:sync"
+  },
+  "dependencies": {
+    "autoprefixer": "^10.4.20",
+    "axios": "^1.7.4",
+    "concurrently": "^9.0.1",
+    "laravel-vite-plugin": "^2.0",
+    "vite": "^7.0.4"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.9.5",
+    "@tailwindcss/oxide-linux-x64-gnu": "^4.0.1",
+    "lightningcss-linux-x64-gnu": "^1.29.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.17",
+    "daisyui": "^5.5.8",
+    "magic-string": "^0.30.21",
+    "oxc-parser": "^0.112.0",
+    "tailwindcss": "^4.1.17"
+  },
+  "aiI18n": {
+    "locales": [
+      "de",
+      "en",
+      "es",
+      "fr"
+    ]
+  }
 }

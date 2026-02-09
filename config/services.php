@@ -37,6 +37,12 @@ return [
 
     'invoice_ninja' => [
         'api_secret_token' => env('INVOICE_NINJA_API_SECRET_TOKEN'),
+        'url' => env('INVOICE_NINJA_URL'),
+    ],
+
+    'analysis' => [
+        'url' => env('ANALYSIS_SERVICE_URL', 'http://127.0.0.1:8090'),
+        'token' => env('ANALYSIS_SERVICE_TOKEN'),
     ],
 
 ];

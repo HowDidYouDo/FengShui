@@ -17,17 +17,27 @@ class extends Component {
 
     // State für Tabs
     #[Url(keep: true)]
-    public string $tab = 'analysis'; // 'analysis' | 'map' | 'family'
+    public string $tab = 'analysis'; // 'analysis' | 'map' | 'family' | 'flying_stars'
+
+    public Collection $floorPlans;
+    public string $selectedFloorPlanId = '';
 
     public function mount(Customer $customer, ?string $tab = null): void
     {
         $this->authorize('view', $customer);
         $this->customer = $customer;
 
-        if ($tab && in_array($tab, ['analysis', 'map', 'family'])) {
+        $this->floorPlans = $this->project ? $this->project->floorPlans : collect();
+        if ($this->floorPlans->isNotEmpty()) {
+            $this->selectedFloorPlanId = (string) $this->floorPlans->first()->id;
+        }
+
+        if ($tab && in_array($tab, ['analysis', 'map', 'family', 'flying_stars'])) {
             $this->tab = $tab;
         }
     }
+
+    protected $listeners = ['project-updated' => '$refresh'];
 
     // Computed Property für das Projekt (spart uns das manuelle Laden)
     public function getProjectProperty(): ?Project
@@ -38,6 +48,47 @@ class extends Component {
     public function getCalculatorProperty(): MingGuaCalculator
     {
         return new MingGuaCalculator();
+    }
+
+    public function getRoomTypeOptionsProperty(): array
+    {
+        return [
+            'living_room' => __('Living Room'),
+            'bedroom' => __('Bedroom'),
+            'kitchen' => __('Kitchen'),
+            'dining_room' => __('Dining Room'),
+            'family_room' => __('Family Room'),
+            'study_room' => __('Study / Office'),
+            'nursery' => __('Nursery / Kids Room'),
+            'guest_room' => __('Guest Room'),
+            'entrance' => __('Entrance / Foyer'),
+            'balcony' => __('Balcony / Terrace'),
+            'garden' => __('Garden / Patio'),
+            'hallway' => __('Hallway / Corridor'),
+            'bathroom' => __('Bathroom'),
+            'storage' => __('Storage / Closet'),
+            'garage' => __('Garage'),
+            'utility' => __('Utility Room'),
+            'other' => __('Other'),
+        ];
+    }
+
+    public function updateRoomType(int $noteId, string $type): void
+    {
+        $note = \App\Models\BaguaNote::find($noteId);
+        if ($note && $note->floorPlan->project->customer_id === $this->customer->id) {
+            $note->update(['room_type' => $type]);
+            $this->dispatch('notify', message: __('Room type updated.'));
+        }
+    }
+
+    public function updateStarsAnalysis(int $noteId, string $analysis): void
+    {
+        $note = \App\Models\BaguaNote::find($noteId);
+        if ($note && $note->floorPlan->project->customer_id === $this->customer->id) {
+            $note->update(['stars_analysis' => $analysis]);
+            $this->dispatch('notify', message: __('Analysis updated.'));
+        }
     }
 
     public function getArrowRotationsProperty(): array
@@ -179,14 +230,6 @@ class extends Component {
                         {{ __('Gua Analysis') }}
                     </button>
 
-                    <button
-                        wire:click="$set('tab', 'map')"
-                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 {{ $tab === 'map' ? 'border-brand-blue text-brand-blue' : 'border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300' }}"
-                    >
-                        <flux:icon.map class="size-4"/>
-                        {{ __('Floor Plans & Map') }}
-                    </button>
-
                     @php
                         $hasFamilyFeature = auth()->user()->hasFeature('family');
                     @endphp
@@ -197,6 +240,24 @@ class extends Component {
                         >
                             <flux:icon.users class="size-4"/>
                             {{ __('Family Tree') }}
+                        </button>
+                    @endif
+
+                    <button
+                        wire:click="$set('tab', 'map')"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 {{ $tab === 'map' ? 'border-brand-blue text-brand-blue' : 'border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300' }}"
+                    >
+                        <flux:icon.map class="size-4"/>
+                        {{ __('Floor Plans & Map') }}
+                    </button>
+
+                    @if(auth()->user()->hasFeature('flying_stars'))
+                        <button
+                            wire:click="$set('tab', 'flying_stars')"
+                            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 {{ $tab === 'flying_stars' ? 'border-brand-blue text-brand-blue' : 'border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300' }}"
+                        >
+                            <flux:icon.sparkles class="size-4"/>
+                            {{ __('Flying Stars Analysis') }}
                         </button>
                     @endif
                 </nav>
@@ -291,6 +352,25 @@ class extends Component {
                                             {{ __('Belongs to the') }} <strong
                                                 class="text-zinc-900 dark:text-zinc-200">{{ __($analysis['attributes']['group']) }} {{ __('Group') }}</strong>.
                                         </p>
+
+                                        <!-- Flying Stars Summary (if applicable and authorized) -->
+                                        @if($analysis['type'] === 'Main' && auth()->user()->hasFeature('flying_stars') && $this->project?->facing_mountain)
+                                            <div class="mt-4 flex flex-wrap gap-2">
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold border border-brand-orange/20 bg-brand-orange/5 text-brand-orange uppercase">
+                                                    <flux:icon.sparkles class="size-3" />
+                                                    {{ __('Flying Stars') }}: {{ $this->project->facing_mountain }}
+                                                    @if($this->project->is_replacement_chart)
+                                                        ({{ __('Replacement') }})
+                                                    @endif
+                                                </span>
+                                                @if($this->project->special_chart_type)
+                                                    <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold border border-purple-500/20 bg-purple-500/5 text-purple-600 uppercase">
+                                                        {{ $this->project->special_chart_type }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        @endif
+
                                         <!-- Relationship Infos -->
                                         <div class="mt-4 grid grid-cols-1 {{ $analysis['partner_compatibility'] ? 'sm:grid-cols-2' : '' }} gap-4">
                                             <!-- Element Relationship Info -->
@@ -463,6 +543,31 @@ class extends Component {
                         </div>
                     @endif
 
+                </div>
+            @endif
+
+            <!-- TAB 4: FLYING STARS -->
+            @if($tab === 'flying_stars' && auth()->user()->hasFeature('flying_stars'))
+                <div class="space-y-6">
+                    @if($this->project)
+                        <div class="bg-white dark:bg-zinc-900 overflow-hidden shadow-sm sm:rounded-xl border border-zinc-200 dark:border-zinc-800">
+                            <div class="p-8">
+                                @include('livewire.modules.bagua.partials.flying-stars-report', [
+                                    'project' => $this->project,
+                                    'floorPlans' => $this->floorPlans,
+                                    'selectedFloorPlanId' => $this->selectedFloorPlanId,
+                                    'roomTypeOptions' => $this->roomTypeOptions,
+                                    'calculator' => $this->calculator
+                                ])
+                            </div>
+                        </div>
+                    @else
+                        <div class="text-center py-12 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                             <flux:icon.home class="size-12 mx-auto text-zinc-300 mb-4"/>
+                             <h3 class="text-lg font-bold text-zinc-900 dark:text-white">{{ __('No Project Found') }}</h3>
+                             <p class="text-zinc-500">{{ __('Please create a project first.') }}</p>
+                        </div>
+                    @endif
                 </div>
             @endif
 

@@ -16,9 +16,6 @@ class AnalyzeFloorPlanJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    // Konfiguration für den Service
-    protected string $apiUrl = 'http://127.0.0.1:8090';
-
     public function __construct(
         public FloorPlan $floorPlan
     )
@@ -27,16 +24,18 @@ class AnalyzeFloorPlanJob implements ShouldQueue
 
     public function handle(): void
     {
+        $apiUrl = config('services.analysis.url', 'http://127.0.0.1:8090');
+        $apiToken = config('services.analysis.token');
+
         // 1. Validierung: Hat der Plan ein Bild?
         if (!$this->floorPlan->hasMedia('floor_plans')) {
             Log::warning("FloorPlan {$this->floorPlan->id} analysis skipped: No media found.");
             return;
         }
 
-
         // FAKE MODE für lokale Entwicklung ohne Python API
         // Wenn API_MOCK=true in .env steht ODER der Health Check fehlschlägt
-        if (config('app.env') === 'local' || !$this->checkApiHealth()) {
+        if (config('app.env') === 'local' || !$this->checkApiHealth($apiUrl)) {
 
             Log::info("FloorPlan {$this->floorPlan->id}: Using MOCK analysis data.");
 
@@ -67,12 +66,13 @@ class AnalyzeFloorPlanJob implements ShouldQueue
 
             // 4. Der eigentliche Request
             $response = Http::timeout(60) // 60s Timeout für große Bilder
-            ->attach(
-                'file', // Feldname muss zur FastAPI passen (def 'file')
-                file_get_contents($imagePath),
-                $fileName
-            )
-                ->post("{$this->apiUrl}/process");
+                ->when($apiToken, fn($h) => $h->withToken($apiToken))
+                ->attach(
+                    'file', // Feldname muss zur FastAPI passen (def 'file')
+                    file_get_contents($imagePath),
+                    $fileName
+                )
+                ->post("{$apiUrl}/process");
 
             // 5. Verarbeitung der Antwort
             if ($response->successful()) {
@@ -123,10 +123,10 @@ class AnalyzeFloorPlanJob implements ShouldQueue
     /**
      * Prüft, ob der Python Service antwortet (GET /health)
      */
-    private function checkApiHealth(): bool
+    private function checkApiHealth(string $apiUrl): bool
     {
         try {
-            $response = Http::timeout(3)->get("{$this->apiUrl}/health");
+            $response = Http::timeout(3)->get("{$apiUrl}/health");
 
             if ($response->successful()) {
                 $data = $response->json();

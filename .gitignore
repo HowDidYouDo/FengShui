@@ -1,4 +1,3 @@
-/.phpunit.cache
 /node_modules
 /public/build
 /public/hot
@@ -23,3 +22,25 @@ yarn-error.log
 /.zed
 /database/*.sqlite
 /database/*.sqlite-journal
+
+# Laravel 12 specific / Additional
+.phpunit.cache
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+/storage/logs/*
+/storage/app/public/*
+
+# Project specific
+used_keys.txt
+security_audit.md
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

@@ -15,6 +15,11 @@ new class extends Component {
     public $settled_year;
     public $facing_direction;
     public $ventilation_direction; // Optional, falls man es erfassen will
+    public $facing_mountain;
+    public $is_replacement_chart;
+    public $special_chart_type;
+
+    public $facingMountainOptions = [];
 
     // Modal State
     public bool $showModal = false;
@@ -28,6 +33,13 @@ new class extends Component {
         $this->settled_year = $project->settled_year;
         $this->facing_direction = $project->facing_direction;
         $this->ventilation_direction = $project->ventilation_direction;
+        $this->facing_mountain = $project->facing_mountain;
+        $this->is_replacement_chart = $project->is_replacement_chart;
+        $this->special_chart_type = $project->special_chart_type;
+
+        $this->facingMountainOptions = collect(\App\Services\Metaphysics\FlyingStarService::MOUNTAINS)
+            ->mapWithKeys(fn($m) => [$m['name'] => $m['name']])
+            ->toArray();
     }
 
     public function save()
@@ -37,6 +49,9 @@ new class extends Component {
             'settled_year' => 'required|integer|min:1900|max:2100',
             'facing_direction' => 'required|numeric|min:0|max:360',
             'ventilation_direction' => 'nullable|numeric|min:0|max:360',
+            'facing_mountain' => 'nullable|string',
+            'is_replacement_chart' => 'boolean',
+            'special_chart_type' => 'nullable|string|max:255',
         ]);
 
         // Periode berechnen (Feng Shui Logik)
@@ -49,6 +64,9 @@ new class extends Component {
             'facing_direction' => $this->facing_direction,
             'ventilation_direction' => $this->ventilation_direction,
             'period' => $period,
+            'facing_mountain' => $this->facing_mountain,
+            'is_replacement_chart' => $this->is_replacement_chart,
+            'special_chart_type' => $this->special_chart_type,
         ]);
 
         $this->showModal = false;
@@ -135,6 +153,41 @@ new class extends Component {
                             <p class="text-[10px] text-zinc-400">{{ __('Main airflow/ventilation direction.') }}</p>
                         </div>
                     </div>
+
+                    @if(auth()->user()->hasFeature('flying_stars'))
+                        <div class="pt-4 border-t border-zinc-200 dark:border-zinc-700 space-y-4">
+                            <h4 class="text-sm font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
+                                <flux:icon.sparkles class="size-4" /> {{ __('Flying Stars Overrides') }}
+                            </h4>
+
+                            <div class="grid grid-cols-2 gap-6">
+                                <flux:select wire:model="facing_mountain" :label="__('Facing Mountain')">
+                                    <flux:select.option value="">{{ __('Auto-Calculate') }}</flux:select.option>
+                                    @foreach($facingMountainOptions as $val => $label)
+                                        <flux:select.option :value="$val">{{ $label }}</flux:select.option>
+                                    @endforeach
+                                </flux:select>
+
+                                <flux:select wire:model="special_chart_type" :label="__('Special Chart Type')">
+                                    <flux:select.option value="">{{ __('None') }}</flux:select.option>
+                                    <flux:select.option value="Dual Star at Facing">{{ __('Dual Star at Facing') }}</flux:select.option>
+                                    <flux:select.option value="Dual Star at Sitting">{{ __('Dual Star at Sitting') }}</flux:select.option>
+                                    <flux:select.option value="Twin Stars at Door">{{ __('Twin Stars at Door') }}</flux:select.option>
+                                    <flux:select.option value="Reverse Merit Chart">{{ __('Reverse Merit Chart') }}</flux:select.option>
+                                    <flux:select.option value="Sum of Ten">{{ __('Sum of Ten') }}</flux:select.option>
+                                    <flux:select.option value="String of Pearls">{{ __('String of Pearls') }}</flux:select.option>
+                                    <flux:select.option value="Parent String">{{ __('Parent String') }}</flux:select.option>
+                                </flux:select>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <flux:checkbox wire:model="is_replacement_chart" :label="__('Is Replacement Chart (Kong Wang)')" />
+                            </div>
+                            <p class="text-[10px] text-zinc-500 italic">
+                                {{ __('Note: Facing Mountain and Replacement status are normally auto-calculated from the Facing Direction. Only change these if you want to force a specific chart.') }}
+                            </p>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="flex justify-end gap-2 pt-4">

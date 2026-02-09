@@ -60,6 +60,18 @@ Route::middleware(['auth'])->group(function () {
             }
             return redirect()->route('modules.bagua', ['target' => 'family']);
         })->name('family');
+
+        // Flying Stars Redirect
+        Route::get('/flying_stars', function () {
+            $user = auth()->user();
+            if (!$user->hasFeature('crm')) {
+                $self = $user->customers()->where('is_self_profile', true)->first();
+                if ($self) {
+                    return redirect()->route('modules.bagua.show', ['customer' => $self, 'tab' => 'flying_stars']);
+                }
+            }
+            return redirect()->route('modules.bagua', ['target' => 'flying_stars']);
+        })->name('flying_stars');
     });
 
     Volt::route('settings/profile', 'settings.profile')->name('profile.edit');

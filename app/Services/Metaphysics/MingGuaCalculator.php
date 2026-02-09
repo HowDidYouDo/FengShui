@@ -4,7 +4,9 @@ namespace App\Services\Metaphysics;
 
 use App\Models\BaguaNote;
 use App\Models\FloorPlan;
+use App\Models\Project;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
 
 class MingGuaCalculator
@@ -306,6 +308,47 @@ class MingGuaCalculator
     }
 
     /**
+     * Analysiert die Kompatibilität von fliegenden Sternen mit dem Life Gua einer Person.
+     */
+    public function analyzeFlyingStarCompatibility(int $lifeGua, int $mountainStar, int $waterStar): array
+    {
+        $lifeAttr = $this->getAttributes($lifeGua);
+        $lifeElement = $lifeAttr['element'];
+
+        // Sterne als Elemente
+        // 1: Water, 2: Earth, 3: Wood, 4: Wood, 5: Earth, 6: Metal, 7: Metal, 8: Earth, 9: Fire
+        $starElements = [
+            1 => 'Water', 2 => 'Earth', 3 => 'Wood', 4 => 'Wood',
+            5 => 'Earth', 6 => 'Metal', 7 => 'Metal', 8 => 'Earth', 9 => 'Fire'
+        ];
+
+        $mountainElement = $starElements[$mountainStar] ?? __('Unknown');
+        $waterElement = $starElements[$waterStar] ?? __('Unknown');
+
+        // Bergstern (Gesundheit/Beziehungen) vs Life Gua
+        $mountainRel = $this->analyzeElementRelationship($lifeElement, $mountainElement);
+        // Wasserstern (Wohlstand/Karriere) vs Life Gua
+        $waterRel = $this->analyzeElementRelationship($lifeElement, $waterElement);
+
+        return [
+            'mountain' => [
+                'star' => $mountainStar,
+                'element' => $mountainElement,
+                'quality' => $mountainRel['quality'] ?? 'Neutral',
+                'description' => $mountainRel['desc'] ?? '',
+                'label' => $mountainRel['label'] ?? ''
+            ],
+            'water' => [
+                'star' => $waterStar,
+                'element' => $waterElement,
+                'quality' => $waterRel['quality'] ?? 'Neutral',
+                'description' => $waterRel['desc'] ?? '',
+                'label' => $waterRel['label'] ?? ''
+            ]
+        ];
+    }
+
+    /**
      * Berechnet das Element des Geburtsjahres (Heavenly Stem).
      * 0=Metal, 1=Metal, 2=Water, 3=Water, 4=Wood, 5=Wood, 6=Fire, 7=Fire, 8=Earth, 9=Earth
      * Basierend auf der letzten Ziffer des Jahres.
@@ -585,9 +628,41 @@ class MingGuaCalculator
             return ['error' => 'No valid project direction'];
         }
 
-        $direction = $direction ?? $floorPlan->project->getActiveDirection();
+        $project = $floorPlan->project;
+        $direction = $direction ?? $project->getActiveDirection();
         $sitzGua = $this->ventilationToSitzGua($direction);
         $baguaGrid = $this->rotateBaguaGrid($sitzGua);
+
+        // Flying Stars Logic
+        $flyingStars = null;
+        $user = Auth::user();
+        if ($user && $user->hasFeature('flying_stars')) {
+            $fsService = app(FlyingStarService::class);
+            $flyingStars = $fsService->calculateChart(
+                $project->period,
+                $project->facing_direction,
+                $project->facing_mountain, // Pass the override if set
+                (bool) $project->is_replacement_chart
+            );
+
+            // Update Project with FS info if not yet set (and not overridden)
+            if (!$project->facing_mountain) {
+                // If we detected replacement needed but didn't calculate with it, do it now
+                if ($flyingStars['needs_replacement'] && !$project->is_replacement_chart) {
+                    $flyingStars = $fsService->calculateChart(
+                        $project->period,
+                        $project->facing_direction,
+                        $project->facing_mountain,
+                        true
+                    );
+                }
+
+                $project->update([
+                    'facing_mountain' => $flyingStars['facing_mountain'],
+                    'is_replacement_chart' => $flyingStars['needs_replacement']
+                ]);
+            }
+        }
 
         // Delete old notes
         $floorPlan->baguaNotes()->delete();
@@ -597,24 +672,35 @@ class MingGuaCalculator
             if ($position != 5 && $gua !== null) {
                 $trigramData = self::CLASSICAL_TRIGRAMS[$gua];
 
-                $baguaNote = BaguaNote::create([
+                $data = [
                     'floor_plan_id' => $floorPlan->id,
                     'gua_number' => $position,
-                    'content' => json_encode([
-                        'gua_number' => $position,
-                        'trigram_gua' => $gua,
-                        'name' => $trigramData['name'],
-                        'symbol' => $trigramData['symbol'],
-                        'direction' => $trigramData['direction'],
-                        'element' => $trigramData['element'],
-                        'color' => $trigramData['color'],
-                        'bg_color' => $trigramData['bg_color'],
-                        'ventilation_degrees' => $direction,
-                        'sitz_gua' => $sitzGua,
-                        'direction_type' => $floorPlan->project->getDirectionType(),
-                    ]),
+                ];
+
+                // Add Flying Stars to Note if available
+                if ($flyingStars) {
+                    $data['mountain_star'] = $flyingStars['mountain'][$gua] ?? null;
+                    $data['water_star'] = $flyingStars['water'][$gua] ?? null;
+                    $data['base_star'] = $flyingStars['base'][$gua] ?? null;
+                }
+
+                $data['content'] = json_encode([
+                    'gua_number' => $position,
+                    'trigram_gua' => $gua,
+                    'name' => $trigramData['name'],
+                    'symbol' => $trigramData['symbol'],
+                    'direction' => $trigramData['direction'],
+                    'element' => $trigramData['element'],
+                    'color' => $trigramData['color'],
+                    'bg_color' => $trigramData['bg_color'],
+                    'ventilation_degrees' => $direction,
+                    'sitz_gua' => $sitzGua,
+                    'direction_type' => $project->getDirectionType(),
+                    'mountain_flight_direction' => $flyingStars['mountain_flight_direction'] ?? null,
+                    'water_flight_direction' => $flyingStars['water_flight_direction'] ?? null,
                 ]);
 
+                $baguaNote = BaguaNote::create($data);
                 $results[$position] = $baguaNote->content;
             }
         }
@@ -624,6 +710,7 @@ class MingGuaCalculator
             'sitz_gua' => $sitzGua,
             'ventilation_degrees' => $direction,
             'notes_count' => count($results),
+            'flying_stars' => (bool)$flyingStars,
         ];
     }
 

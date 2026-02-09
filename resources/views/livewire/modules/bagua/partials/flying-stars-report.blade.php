@@ -3,7 +3,8 @@
     $chart = $fsService->calculateChart(
         $project->period,
         $project->facing_direction,
-        $project->facing_mountain
+        $project->facing_mountain,
+        (bool) $project->is_replacement_chart
     );
 
     $gridLabels = [
@@ -49,7 +50,7 @@
             <p class="text-xs text-zinc-500 mt-1">{{ __('Settled in') }} {{ $project->settled_year }}</p>
         </div>
         <div class="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
-            <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{{ __('Facing Direction') }}</span>
+            <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{{ __('Facing Direction (°)') }}</span>
             <div class="text-3xl font-black text-brand-orange">{{ $project->facing_direction }}°</div>
             <p class="text-xs text-zinc-500 mt-1">{{ __('Mountain') }}: <strong>{{ $project->facing_mountain ?: 'Auto' }}</strong></p>
         </div>
@@ -62,6 +63,17 @@
                     <span class="text-green-600">Standard Chart</span>
                 @endif
             </div>
+            
+            @if(!$project->is_replacement_chart && $chart['needs_replacement'])
+                <div class="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-xs text-red-600 dark:text-red-400 flex items-start gap-2">
+                    <flux:icon.exclamation-triangle class="size-4 shrink-0 mt-0.5" />
+                    <div>
+                        <strong>{{ __('Replacement Recommended!') }}</strong><br>
+                        {{ __('The facing direction is close to a boundary (Void Line). Consider activating the Replacement Chart option.') }}
+                    </div>
+                </div>
+            @endif
+
             @if($project->special_chart_type)
                 <p class="text-xs text-purple-600 font-bold mt-1 uppercase">{{ $project->special_chart_type }}</p>
             @endif
@@ -106,21 +118,27 @@
                                   stroke="#ef4444" stroke-width="1.5" vector-effect="non-scaling-stroke" />
                         </g>
 
-                        {{-- Sektor-Farben (Hintergrund) --}}
+                        {{-- Sektor-Farben (Hintergrund) & Gua-Nummer --}}
                         @foreach($currentFloorPlan->baguaNotes as $note)
                             @php
                                 $noteData = json_decode($note->content, true);
                                 if (!$noteData && $note->content) $noteData = json_decode(json_decode($note->content, true), true) ?? [];
                                 $bgcolor = $noteData['bg_color'] ?? '#d1d5db';
+                                $color = $noteData['color'] ?? '#6b7280';
                                 $row = 2 - floor(($note->gua_number - 1) / 3);
                                 $col = 2 - (($note->gua_number - 1) % 3);
                                 $sectorWidth = ($bounds['x2'] - $bounds['x1']) / 3;
                                 $sectorHeight = ($bounds['y2'] - $bounds['y1']) / 3;
                                 $sectorX = $bounds['x1'] + $col * $sectorWidth;
                                 $sectorY = $bounds['y1'] + $row * $sectorHeight;
+                                $fontSize = max(12, ($bounds['x2']-$bounds['x1'])/25);
                             @endphp
                             <rect x="{{ $sectorX }}" y="{{ $sectorY }}" width="{{ $sectorWidth }}" height="{{ $sectorHeight }}"
                                   fill="{{ $bgcolor }}" fill-opacity="0.2" />
+
+                            {{-- Gua Number Circle --}}
+                            <circle cx="{{ $sectorX + 25 }}" cy="{{ $sectorY + 25 }}" r="18" fill="white" fill-opacity="0.9" stroke="{{ $color }}" stroke-width="2" />
+                            <text x="{{ $sectorX + 25 }}" y="{{ $sectorY + 31 }}" font-size="18" font-weight="black" fill="{{ $color }}" text-anchor="middle">{{ $note->gua_number }}</text>
                         @endforeach
 
                         {{-- Flying Stars (Kräftig) --}}
@@ -133,21 +151,60 @@
                                 $sectorX = $bounds['x1'] + $col * $sectorWidth;
                                 $sectorY = $bounds['y1'] + $row * $sectorHeight;
                                 $fontSize = max(12, ($bounds['x2']-$bounds['x1'])/25);
+
+                                // Use calculated chart values instead of stored DB values
+                                $pos = $note->gua_number;
+                                $mountain = $chart['mountain'][$pos] ?? null;
+                                $water = $chart['water'][$pos] ?? null;
+                                $base = $chart['base'][$pos] ?? null;
                             @endphp
                             <g class="flying-stars font-black" style="font-size: {{ $fontSize }}px">
-                                @if($note->mountain_star)
-                                    <text x="{{ $sectorX + $sectorWidth * 0.2 }}" y="{{ $sectorY + $sectorHeight * 0.3 }}" fill="white" stroke="white" stroke-width="3" stroke-linejoin="round" text-anchor="middle">{{ $note->mountain_star }}</text>
-                                    <text x="{{ $sectorX + $sectorWidth * 0.2 }}" y="{{ $sectorY + $sectorHeight * 0.3 }}" fill="#b45309" text-anchor="middle">{{ $note->mountain_star }}</text>
+                                @if($mountain)
+                                    <text x="{{ $sectorX + $sectorWidth * 0.2 }}" y="{{ $sectorY + $sectorHeight * 0.3 }}" fill="white" stroke="white" stroke-width="3" stroke-linejoin="round" text-anchor="middle">{{ $mountain }}</text>
+                                    <text x="{{ $sectorX + $sectorWidth * 0.2 }}" y="{{ $sectorY + $sectorHeight * 0.3 }}" fill="#b45309" text-anchor="middle">{{ $mountain }}</text>
                                 @endif
-                                @if($note->water_star)
-                                    <text x="{{ $sectorX + $sectorWidth * 0.8 }}" y="{{ $sectorY + $sectorHeight * 0.3 }}" fill="white" stroke="white" stroke-width="3" stroke-linejoin="round" text-anchor="middle">{{ $note->water_star }}</text>
-                                    <text x="{{ $sectorX + $sectorWidth * 0.8 }}" y="{{ $sectorY + $sectorHeight * 0.3 }}" fill="#1d4ed8" text-anchor="middle">{{ $note->water_star }}</text>
+                                @if($water)
+                                    <text x="{{ $sectorX + $sectorWidth * 0.8 }}" y="{{ $sectorY + $sectorHeight * 0.3 }}" fill="white" stroke="white" stroke-width="3" stroke-linejoin="round" text-anchor="middle">{{ $water }}</text>
+                                    <text x="{{ $sectorX + $sectorWidth * 0.8 }}" y="{{ $sectorY + $sectorHeight * 0.3 }}" fill="#1d4ed8" text-anchor="middle">{{ $water }}</text>
                                 @endif
-                                @if($note->base_star)
-                                    <text x="{{ $sectorX + $sectorWidth * 0.5 }}" y="{{ $sectorY + $sectorHeight * 0.85 }}" fill="white" stroke="white" stroke-width="3" stroke-linejoin="round" text-anchor="middle">{{ $note->base_star }}</text>
-                                    <text x="{{ $sectorX + $sectorWidth * 0.5 }}" y="{{ $sectorY + $sectorHeight * 0.85 }}" fill="#52525b" text-anchor="middle">{{ $note->base_star }}</text>
+                                @if($base)
+                                    <text x="{{ $sectorX + $sectorWidth * 0.5 }}" y="{{ $sectorY + $sectorHeight * 0.85 }}" fill="white" stroke="white" stroke-width="3" stroke-linejoin="round" text-anchor="middle">{{ $base }}</text>
+                                    <text x="{{ $sectorX + $sectorWidth * 0.5 }}" y="{{ $sectorY + $sectorHeight * 0.85 }}" fill="#52525b" text-anchor="middle">{{ $base }}</text>
                                 @endif
                             </g>
+
+                            {{-- Room Type & Residents --}}
+                            @if($note->room_type)
+                                <text x="{{ $sectorX + $sectorWidth * 0.5 }}" y="{{ $sectorY + $sectorHeight * 0.5 }}"
+                                      fill="white" stroke="white" stroke-width="2" stroke-linejoin="round"
+                                      font-size="{{ $fontSize * 0.6 }}" font-weight="bold" text-anchor="middle" opacity="0.9">
+                                    {{ __($roomTypeOptions[$note->room_type] ?? '') }}
+                                </text>
+                                <text x="{{ $sectorX + $sectorWidth * 0.5 }}" y="{{ $sectorY + $sectorHeight * 0.5 }}"
+                                      fill="#71717a" font-size="{{ $fontSize * 0.6 }}" font-weight="bold" text-anchor="middle">
+                                    {{ __($roomTypeOptions[$note->room_type] ?? '') }}
+                                </text>
+                            @endif
+
+                            {{-- Avatars of residents --}}
+                            @if($note->roomAssignments->isNotEmpty())
+                                @php
+                                    $avatarSize = $fontSize * 1.5;
+                                    $totalResidents = $note->roomAssignments->count();
+                                    $spacing = $avatarSize * 1.1;
+                                    $startX = $sectorX + ($sectorWidth / 2) - (($totalResidents - 1) * $spacing / 2);
+                                @endphp
+                                @foreach($note->roomAssignments as $index => $assignment)
+                                    <foreignObject x="{{ $startX + ($index * $spacing) - ($avatarSize / 2) }}"
+                                                   y="{{ $sectorY + $sectorHeight * 0.55 }}"
+                                                   width="{{ $avatarSize }}" height="{{ $avatarSize }}">
+                                        <div xmlns="http://www.w3.org/1999/xhtml">
+                                            <img src="https://ui-avatars.com/api/?name={{ urlencode($assignment->person->name) }}&background=random"
+                                                 style="width: {{ $avatarSize }}px; height: {{ $avatarSize }}px; border-radius: 9999px; border: 1px solid white; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                                        </div>
+                                    </foreignObject>
+                                @endforeach
+                            @endif
                         @endforeach
                     </svg>
                 @endif
@@ -175,16 +232,30 @@
                     $note = $notes->get($pos);
                 @endphp
                 @if($note)
-                    <div class="p-6 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4 hover:border-brand-blue/30 transition-colors">
+                    @php
+                        $noteData = json_decode($note->content, true);
+                        if (!$noteData && $note->content) $noteData = json_decode(json_decode($note->content, true), true) ?? [];
+                        $accentColor = $noteData['color'] ?? '#6b7280';
+                        $accentBg = $noteData['bg_color'] ?? '#f3f4f6';
+                    @endphp
+                    <div class="p-6 bg-white dark:bg-zinc-900 rounded-xl border-2 shadow-sm space-y-4 hover:border-brand-blue/30 transition-colors"
+                         style="border-color: {{ $accentColor }}20;">
                         <div class="flex items-center justify-between">
-                            <div>
-                                <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{{ $gridLabels[$pos] }}</div>
-                                <div class="text-2xl font-black text-zinc-800 dark:text-zinc-200 mt-1">
-                                    <span class="text-amber-700">{{ $chart['mountain'][$pos] }}</span>
-                                    <span class="text-zinc-300 mx-2">·</span>
-                                    <span class="text-blue-700">{{ $chart['water'][$pos] }}</span>
-                                    <span class="text-zinc-300 mx-2">·</span>
-                                    <span class="text-zinc-500">{{ $chart['base'][$pos] }}</span>
+                            <div class="flex items-center gap-3">
+                                {{-- Gua Badge --}}
+                                <div class="size-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                                     style="background-color: {{ $accentBg }}; color: {{ $accentColor }}; border: 1px solid {{ $accentColor }}40;">
+                                    {{ $pos }}
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{{ $gridLabels[$pos] }}</div>
+                                    <div class="text-2xl font-black text-zinc-800 dark:text-zinc-200 mt-1">
+                                        <span class="text-amber-700">{{ $chart['mountain'][$pos] }}</span>
+                                        <span class="text-zinc-300 mx-2">·</span>
+                                        <span class="text-blue-700">{{ $chart['water'][$pos] }}</span>
+                                        <span class="text-zinc-300 mx-2">·</span>
+                                        <span class="text-zinc-500">{{ $chart['base'][$pos] }}</span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="flex flex-col items-end gap-2">
@@ -240,15 +311,33 @@
                             @php
                                 $m = $chart['mountain'][$pos];
                                 $w = $chart['water'][$pos];
-                                $isGood = ($m == 8 || $m == 9 || $m == 1) && ($w == 8 || $w == 9 || $w == 1);
+                                $period = $project->period;
+
+                                // Timely/Prosperous stars for Period 9 (Current, Next, Previous)
+                                $isTimelyM = ($m == 9 || $m == 1 || $m == 8);
+                                $isTimelyW = ($w == 9 || $w == 1 || $w == 8);
+
+                                // Very Inauspicious stars
+                                $isBadM = ($m == 2 || $m == 5);
+                                $isBadW = ($w == 2 || $w == 5);
                             @endphp
+
                             <span class="font-bold text-brand-blue">{{ __('Combination') }} {{ $m }}-{{ $w }}:</span>
+
                             @if($m == $w)
                                 {{ __('Double Star formation. Energy is highly concentrated here.') }}
-                            @elseif($isGood)
-                                {{ __('Prosperous combination. Good for health and wealth.') }}
+                            @elseif($m == 5 && $w == 2 || $m == 2 && $w == 5)
+                                <span class="text-red-600 font-bold">{{ __('Highly challenging combination (Sickness & Misfortune). Requires strong Metal remedies.') }}</span>
+                            @elseif($isTimelyM && $isTimelyW)
+                                {{ __('Prosperous combination. Excellent for both health and wealth in this period.') }}
+                            @elseif($isTimelyW)
+                                {{ __('Wealth-focused combination. The Water Star supports prosperity.') }}
+                            @elseif($isTimelyM)
+                                {{ __('Health-focused combination. The Mountain Star supports relationships and well-being.') }}
+                            @elseif($isBadM || $isBadW)
+                                {{ __('Challenging combination. May bring instability or health issues. Elemental balancing recommended.') }}
                             @else
-                                {{ __('Neutral or complex combination. Requires careful balance of elements.') }}
+                                {{ __('Neutral or complex combination. The influence depends on the specific room usage and layout.') }}
                             @endif
                         </div>
 

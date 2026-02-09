@@ -188,6 +188,34 @@ new class extends Component {
                                         x2="{{ $bounds['x1'] + ($bounds['x2'] - $bounds['x1']) * 0.66 }}" y2="{{ $bounds['y2'] }}"
                                         stroke="#ef4444" stroke-width="2" vector-effect="non-scaling-stroke" />
                                 </g>
+
+                                {{-- Flying Stars in Map View --}}
+                                @if(auth()->user()->hasFeature('flying_stars'))
+                                    @foreach($plan->baguaNotes as $note)
+                                        @php
+                                            $row = 2 - floor(($note->gua_number - 1) / 3);
+                                            $col = 2 - (($note->gua_number - 1) % 3);
+                                            $sectorWidth = ($bounds['x2'] - $bounds['x1']) / 3;
+                                            $sectorHeight = ($bounds['y2'] - $bounds['y1']) / 3;
+                                            $sectorX = $bounds['x1'] + $col * $sectorWidth;
+                                            $sectorY = $bounds['y1'] + $row * $sectorHeight;
+                                        @endphp
+                                        <g class="flying-stars font-black" style="font-size: {{ max(10, ($bounds['x2']-$bounds['x1'])/30) }}px">
+                                            @if($note->mountain_star)
+                                                <text x="{{ $sectorX + $sectorWidth * 0.15 }}" y="{{ $sectorY + $sectorHeight * 0.25 }}" fill="white" stroke="white" stroke-width="2" stroke-linejoin="round" text-anchor="middle">{{ $note->mountain_star }}</text>
+                                                <text x="{{ $sectorX + $sectorWidth * 0.15 }}" y="{{ $sectorY + $sectorHeight * 0.25 }}" fill="#b45309" text-anchor="middle">{{ $note->mountain_star }}</text>
+                                            @endif
+                                            @if($note->water_star)
+                                                <text x="{{ $sectorX + $sectorWidth * 0.85 }}" y="{{ $sectorY + $sectorHeight * 0.25 }}" fill="white" stroke="white" stroke-width="2" stroke-linejoin="round" text-anchor="middle">{{ $note->water_star }}</text>
+                                                <text x="{{ $sectorX + $sectorWidth * 0.85 }}" y="{{ $sectorY + $sectorHeight * 0.25 }}" fill="#1d4ed8" text-anchor="middle">{{ $note->water_star }}</text>
+                                            @endif
+                                            @if($note->base_star)
+                                                <text x="{{ $sectorX + $sectorWidth * 0.5 }}" y="{{ $sectorY + $sectorHeight * 0.9 }}" fill="white" stroke="white" stroke-width="2" stroke-linejoin="round" text-anchor="middle">{{ $note->base_star }}</text>
+                                                <text x="{{ $sectorX + $sectorWidth * 0.5 }}" y="{{ $sectorY + $sectorHeight * 0.9 }}" fill="#52525b" text-anchor="middle">{{ $note->base_star }}</text>
+                                            @endif
+                                        </g>
+                                    @endforeach
+                                @endif
                             </svg>
                         @endif
                     @else
