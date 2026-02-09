@@ -32,6 +32,13 @@
             {{ __('Dashboard') }}
         </flux:navlist.item>
 
+        <!-- Shop Link -->
+        <flux:navlist.item icon="shopping-cart" :href="route('shop')" :current="request()->routeIs('shop')"
+                           wire:navigate
+                           class="data-[current]:!bg-brand-orange-light data-[current]:!text-brand-orange">
+            {{ __('Shop') }}
+        </flux:navlist.item>
+
 
         <!-- Platzhalter für spätere Direktlinks (optional) -->
         <!-- z.B. <flux:navlist.item icon="sparkles" href="#">Flying Stars</flux:navlist.item> -->

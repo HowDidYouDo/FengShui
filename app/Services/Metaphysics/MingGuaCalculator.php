@@ -474,6 +474,65 @@ class MingGuaCalculator
         return []; // Should not happen
     }
 
+    /**
+     * Analysiert die Kompatibilität zwischen zwei GUA-Zahlen für Partner.
+     */
+    public function analyzePartnerCompatibility(int $gua1, int $gua2): array
+    {
+        $attr1 = $this->getAttributes($gua1);
+        $attr2 = $this->getAttributes($gua2);
+
+        $sameGroup = ($attr1['group'] === $attr2['group']);
+
+        $cycle = ['Wood', 'Fire', 'Earth', 'Metal', 'Water'];
+        $e1 = $attr1['element'];
+        $e2 = $attr2['element'];
+
+        $idx1 = array_search($e1, $cycle);
+        $idx2 = array_search($e2, $cycle);
+
+        if ($e1 === $e2) {
+            $result = [
+                'quality' => 'Good',
+                'label' => __('Harmonious'),
+                'desc' => __('Both share the same element. You have a similar approach to life and understand each other well.'),
+                'color' => 'text-blue-600 bg-blue-50',
+                'same_group' => $sameGroup
+            ];
+        } elseif (($idx1 + 1) % 5 === $idx2 || ($idx2 + 1) % 5 === $idx1) {
+            $result = [
+                'quality' => 'Excellent',
+                'label' => __('Supportive'),
+                'desc' => __('Your elements nourish each other. This is a very supportive and growth-oriented relationship.'),
+                'color' => 'text-green-600 bg-green-50',
+                'same_group' => $sameGroup
+            ];
+        } elseif (($idx1 + 2) % 5 === $idx2 || ($idx2 + 2) % 5 === $idx1) {
+            $result = [
+                'quality' => 'Challenging',
+                'label' => __('Challenging'),
+                'desc' => __('Your elements are in a controlling relationship. This can lead to tension but also offers great potential for personal growth if handled with respect.'),
+                'color' => 'text-red-600 bg-red-50',
+                'same_group' => $sameGroup
+            ];
+        } else {
+            $result = [
+                'quality' => 'Neutral',
+                'label' => __('Balanced'),
+                'desc' => __('Your energetic structures are different but can complement each other well through conscious interaction.'),
+                'color' => 'text-zinc-600 bg-zinc-50',
+                'same_group' => $sameGroup
+            ];
+        }
+
+        // Adjust quality if in different group (West vs East)
+        if (!$sameGroup && $result['quality'] !== 'Challenging') {
+            $result['desc'] .= ' ' . __('Note: You belong to different GUA groups (East vs West), which can bring different fundamental needs into the relationship.');
+        }
+
+        return $result;
+    }
+
     public function ventilationToSitzGua(float $ventilationDegrees): int
     {
         $ventilationRanges = [

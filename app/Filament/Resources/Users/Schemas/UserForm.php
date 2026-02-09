@@ -25,13 +25,8 @@ class UserForm
                 TextInput::make('password')
                     ->label(__('Password'))
                     ->password()
-                    ->required(),
-                Textarea::make('two_factor_secret')
-                    ->label(__('Two Factor Secret'))
-                    ->columnSpanFull(),
-                Textarea::make('two_factor_recovery_codes')
-                    ->label(__('Two Factor Recovery Codes'))
-                    ->columnSpanFull(),
+                    ->required(fn (string $context): bool => $context === 'create')
+                    ->dehydrated(fn ($state) => filled($state)),
                 DateTimePicker::make('two_factor_confirmed_at')
                     ->label(__('Two Factor Confirmed At')),
             ]);

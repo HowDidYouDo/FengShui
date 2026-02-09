@@ -3,6 +3,8 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SecureMediaController;
 use App\Livewire\Modules\Crm\Index;
+use App\Livewire\Shop\Checkout;
+use App\Livewire\Shop\Shop;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
@@ -34,6 +36,8 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
+    Route::get('/shop', Shop::class)->name('shop');
+    Route::get('/checkout', Checkout::class)->name('checkout');
     Route::get('media/floor-plans/{floorPlan}/{media}', [SecureMediaController::class, 'show'])
         ->name('media.floor-plans');
 
@@ -44,6 +48,18 @@ Route::middleware(['auth'])->group(function () {
         // Die Detail-Seite (mit ID)
         Volt::route('bagua/{customer}', 'modules.bagua.show')->name('bagua.show');
         Route::get('/crm', Index::class)->name('crm');
+
+        // Family Tree Redirect
+        Route::get('/family', function () {
+            $user = auth()->user();
+            if (!$user->hasFeature('crm')) {
+                $self = $user->customers()->where('is_self_profile', true)->first();
+                if ($self) {
+                    return redirect()->route('modules.bagua.show', ['customer' => $self, 'tab' => 'family']);
+                }
+            }
+            return redirect()->route('modules.bagua', ['target' => 'family']);
+        })->name('family');
     });
 
     Volt::route('settings/profile', 'settings.profile')->name('profile.edit');

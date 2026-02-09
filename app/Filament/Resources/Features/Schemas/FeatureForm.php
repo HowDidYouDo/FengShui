@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Features\Schemas;
 
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
@@ -39,7 +40,14 @@ class FeatureForm
                             ->numeric()
                             ->default(0)
                             ->minValue(0)
-                            ->maxValue(999)
+                            ->maxValue(999),
+
+                        Select::make('included_by_id')
+                            ->label(__('Included in Module'))
+                            ->helperText(__('If a user owns the selected module, they automatically have access to this one.'))
+                            ->relationship('includedBy', 'name')
+                            ->searchable()
+                            ->nullable(),
                     ]),
 
                 Section::make(__('Pricing & Status'))
@@ -70,6 +78,34 @@ class FeatureForm
                             ->inline(false)
                             ->helperText(__('Will be assigned to any new user upon user creation.'))
                             ->default(false),
+                    ]),
+
+                Section::make(__('Purchase & Quota'))
+                    ->columns(3)
+                    ->schema([
+                        Select::make('purchase_type')
+                            ->label(__('Purchase Type'))
+                            ->options([
+                                'lifetime' => __('Lifetime'),
+                                'subscription' => __('Subscription'),
+                            ])
+                            ->default('lifetime')
+                            ->required(),
+
+                        Select::make('renewal_period')
+                            ->label(__('Renewal Period'))
+                            ->options([
+                                'monthly' => __('Monthly'),
+                                'yearly' => __('Yearly'),
+                            ])
+                            ->helperText(__('Only for subscription type.'))
+                            ->nullable(),
+
+                        TextInput::make('default_quota')
+                            ->label(__('Default Quota'))
+                            ->numeric()
+                            ->helperText(__('e.g., number of family members.'))
+                            ->nullable(),
                     ]),
             ]);
     }

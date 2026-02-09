@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "filament/filament": "^4.2",
+        "invoiceninja/sdk-php": "^1.4",
         "lara-zeus/spatie-translatable": "^1.0",
         "laravel/fortify": "^1.30",
         "laravel/framework": "^12.0",

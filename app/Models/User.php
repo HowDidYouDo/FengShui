@@ -79,15 +79,73 @@ class User extends Authenticatable implements FilamentUser, HasMedia
         // Admin darf vielleicht alles? Wenn ja:
         if ($this->hasRole('admin')) return true;
 
-        // Wir suchen in den User-Features, ob eines dabei ist,
-        // das mit dem Feature-Katalog verknüpft ist, welcher den Code hat.
+        // 1. Direkter Check
         $userFeature = $this->features()
             ->whereHas('feature', function ($query) use ($featureCode) {
                 $query->where('code', $featureCode);
             })
             ->first();
 
-        return $userFeature ? $userFeature->isValid() : false;
+        if ($userFeature && $userFeature->isValid()) {
+            return true;
+        }
+
+        // 2. Indirekter Check: Hat der User ein Modul, welches dieses Modul beinhaltet?
+        $isIncluded = $this->features()
+            ->whereHas('feature.includes', function ($query) use ($featureCode) {
+                $query->where('code', $featureCode);
+            })
+            ->first();
+
+        return $isIncluded ? $isIncluded->isValid() : false;
+    }
+
+    /**
+     * Ermittelt das gesamte Kontingent für ein bestimmtes Feature.
+     * Gibt null zurück, wenn unbegrenzt (Admin oder Quota-Feld null).
+     */
+    public function getFeatureQuota(string $featureCode): ?int
+    {
+        if ($this->hasRole('admin')) {
+            return null;
+        }
+
+        $userFeatures = $this->features()
+            ->whereHas('feature', function ($query) use ($featureCode) {
+                $query->where('code', $featureCode);
+            })
+            ->where('active', true)
+            ->where(function ($query) {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->get();
+
+        if ($userFeatures->isEmpty()) {
+            return 0;
+        }
+
+        // Wenn ein Eintrag null (unbegrenzt) hat, ist das Gesamtkontingent unbegrenzt
+        foreach ($userFeatures as $uf) {
+            if ($uf->quota === null) {
+                return null;
+            }
+        }
+
+        return $userFeatures->sum('quota');
+    }
+
+    /**
+     * Prüft, ob noch Kontingent für eine Aktion verfügbar ist.
+     */
+    public function hasAvailableQuota(string $featureCode, int $currentUsage): bool
+    {
+        $quota = $this->getFeatureQuota($featureCode);
+
+        if ($quota === null) {
+            return true;
+        }
+
+        return $currentUsage < $quota;
     }
 
     // Filament Zugangskontrolle (Wer darf ins Admin Panel?)

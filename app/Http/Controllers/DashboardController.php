@@ -25,21 +25,41 @@ class DashboardController extends Controller
         // 2. User-Lizenzen laden
         $myLicenses = $user->features()
             ->where('active', true)
-          //  ->orderBy('features.order', 'asc')
             ->get()
             ->keyBy('feature_id');
 
-        // 3. Features sortieren: Aktive zuerst
-        $sortedFeatures = $allFeatures->sortByDesc(function ($feature) use ($myLicenses, $isAdmin) {
-            // Prüfen, ob Zugriff besteht
-            $license = $myLicenses->get($feature->id);
-            $hasAccess = ($license && $license->isValid()) || $isAdmin;
+        // Ermittele IDs der Features, auf die der User bereits gültigen Zugriff hat
+        if ($isAdmin) {
+            $ownedFeatureIds = $allFeatures->pluck('id')->toArray();
+        } else {
+            $ownedFeatureIds = $myLicenses->filter->isValid()->pluck('feature_id')->toArray();
+        }
 
-            // Sortier-Logik:
-            // 1 = Zugriff (kommt nach oben)
-            // 0 = Kein Zugriff (kommt nach unten)
-            return $hasAccess ? 1 : 0;
+        // 3. Features ausblenden, die durch andere gekaufte Features bereits inkludiert sind
+        $allFeatures = $allFeatures->reject(function ($feature) use ($ownedFeatureIds) {
+            return $feature->included_by_id && in_array($feature->included_by_id, $ownedFeatureIds);
         });
+
+        // 4. Prüfen, ob der User Zugriff auf ALLE aktiven Module hat (nach Filterung)
+        $hasAccessToAll = $allFeatures->every(function ($feature) use ($myLicenses, $isAdmin) {
+            $license = $myLicenses->get($feature->id);
+            return $isAdmin || ($license && $license->isValid());
+        });
+
+        // 5. Features sortieren gemäß Anforderung
+        if ($hasAccessToAll) {
+            // Wenn alle gekauft: Verfügbare (Route existiert) zuerst, dann nach Order
+            $sortedFeatures = $allFeatures->sortBy(function ($feature) {
+                $routeExists = \Illuminate\Support\Facades\Route::has('modules.' . $feature->code);
+                return [
+                    $routeExists ? 0 : 1, // 0 kommt vor 1 in sortBy (Verfügbare zuerst)
+                    $feature->order,
+                ];
+            });
+        } else {
+            // Ansonsten: Strikte Sortierung nach Ordnungsnummer
+            $sortedFeatures = $allFeatures->sortBy('order');
+        }
 
         return view('dashboard', [
             'features' => $sortedFeatures,

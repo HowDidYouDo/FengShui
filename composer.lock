@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d2b40e11b4c356d82ea7a9719b8a16c5",
+    "content-hash": "7403da9eb3d76b5f73263be455569b2b",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -2200,6 +2200,52 @@
                 }
             ],
             "time": "2025-08-22T14:27:06+00:00"
+        },
+        {
+            "name": "invoiceninja/sdk-php",
+            "version": "v1.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/invoiceninja/sdk-php.git",
+                "reference": "7dcd4847fa14c32b5ca73a7ab9035d4c98284c5f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/invoiceninja/sdk-php/zipball/7dcd4847fa14c32b5ca73a7ab9035d4c98284c5f",
+                "reference": "7dcd4847fa14c32b5ca73a7ab9035d4c98284c5f",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7",
+                "nesbot/carbon": "^2|^3",
+                "php": "^8"
+            },
+            "require-dev": {
+                "fakerphp/faker": "^1.16",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "InvoiceNinja\\Sdk\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "David Bomba",
+                    "email": "turbo124@gmail.com"
+                }
+            ],
+            "description": "The Invoice Ninja v5 PHP SDK",
+            "support": {
+                "issues": "https://github.com/invoiceninja/sdk-php/issues",
+                "source": "https://github.com/invoiceninja/sdk-php/tree/v1.4.0"
+            },
+            "time": "2025-01-09T08:09:20+00:00"
         },
         {
             "name": "jfcherng/php-color-output",

@@ -17,12 +17,16 @@ class extends Component {
 
     // State für Tabs
     #[Url(keep: true)]
-    public string $tab = 'analysis'; // 'analysis' | 'map'
+    public string $tab = 'analysis'; // 'analysis' | 'map' | 'family'
 
-    public function mount(Customer $customer): void
+    public function mount(Customer $customer, ?string $tab = null): void
     {
         $this->authorize('view', $customer);
         $this->customer = $customer;
+
+        if ($tab && in_array($tab, ['analysis', 'map', 'family'])) {
+            $this->tab = $tab;
+        }
     }
 
     // Computed Property für das Projekt (spart uns das manuelle Laden)
@@ -38,27 +42,30 @@ class extends Component {
         $results = collect();
         $user = auth()->user();
 
+        $mainGua = null;
+
         // 1. Haupt-Person (Kunde)
         if ($this->customer->birth_date && $this->customer->gender) {
             $year = $calculator->getSolarYear($this->customer->birth_date);
-            $gua = $calculator->calculate($year, $this->customer->gender);
+            $mainGua = $calculator->calculate($year, $this->customer->gender);
             $yearElement = $calculator->getYearElement($year);
             $elementColors = $calculator->getElementColors($yearElement);
             $zodiac = $calculator->getZodiac($year);
             $relationship = $calculator->analyzeElementRelationship(
-                $calculator->getAttributes($gua)['element'], // Gua Element
+                $calculator->getAttributes($mainGua)['element'], // Gua Element
                 $yearElement // Jahr Element
             );
 
             $results->push([
-                'type' => 'Main', // oder 'Family'
+                'type' => 'Main',
                 'person' => $this->customer,
-                'gua' => $gua,
-                'attributes' => $calculator->getAttributes($gua),
+                'gua' => $mainGua,
+                'attributes' => $calculator->getAttributes($mainGua),
                 'year_element' => $yearElement,
                 'year_element_colors' => $elementColors,
                 'zodiac' => $zodiac,
                 'relationship' => $relationship,
+                'partner_compatibility' => null,
             ]);
         }
 
@@ -72,9 +79,14 @@ class extends Component {
                     $elementColors = $calculator->getElementColors($yearElement);
                     $zodiac = $calculator->getZodiac($year);
                     $relationship = $calculator->analyzeElementRelationship(
-                        $calculator->getAttributes($gua)['element'], // Gua Element
-                        $yearElement // Jahr Element
+                        $calculator->getAttributes($gua)['element'],
+                        $yearElement
                     );
+
+                    $partnerCompatibility = null;
+                    if ($mainGua && in_array($member->relationship, [\App\Models\FamilyMember::RELATIONSHIP_PRIMARY_PARTNER, \App\Models\FamilyMember::RELATIONSHIP_SECONDARY_PARTNER])) {
+                        $partnerCompatibility = $calculator->analyzePartnerCompatibility($mainGua, $gua);
+                    }
 
                     $results->push([
                         'type' => 'Family',
@@ -85,6 +97,7 @@ class extends Component {
                         'year_element_colors' => $elementColors,
                         'zodiac' => $zodiac,
                         'relationship' => $relationship,
+                        'partner_compatibility' => $partnerCompatibility,
                     ]);
                 }
             }
@@ -154,6 +167,19 @@ class extends Component {
                         <flux:icon.map class="size-4"/>
                         {{ __('Floor Plans & Map') }}
                     </button>
+
+                    @php
+                        $hasFamilyFeature = auth()->user()->hasFeature('family');
+                    @endphp
+                    @if($hasFamilyFeature)
+                        <button
+                            wire:click="$set('tab', 'family')"
+                            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 {{ $tab === 'family' ? 'border-brand-blue text-brand-blue' : 'border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300' }}"
+                        >
+                            <flux:icon.users class="size-4"/>
+                            {{ __('Family Tree') }}
+                        </button>
+                    @endif
                 </nav>
             </div>
 
@@ -185,7 +211,7 @@ class extends Component {
                                     </div>
                                     <h3 class="text-xl font-bold text-zinc-900 dark:text-white">
                                         {{ $analysis['person']->name }}
-                                        <span class="text-sm font-normal text-zinc-500">({{ $analysis['type'] === 'Main' ? 'Client' : $analysis['person']->relationship }})</span>
+                                        <span class="text-sm font-normal text-zinc-500">({{ $analysis['type'] === 'Main' ? __('Client') : $analysis['person']->getRelationshipLabel() }})</span>
                                     </h3>
                                 </div>
                             @endif
@@ -242,28 +268,57 @@ class extends Component {
                                             {{ __('Belongs to the') }} <strong
                                                 class="text-zinc-900 dark:text-zinc-200">{{ __($analysis['attributes']['group']) }} {{ __('Group') }}</strong>.
                                         </p>
-                                        <!-- Element Relationship Info -->
-                                        <div
-                                            class="mt-4 p-3 rounded-lg border border-zinc-100 dark:border-zinc-700 {{ $analysis['relationship']['color'] }} dark:bg-opacity-10">
-                                            <div class="flex items-start gap-3">
-                                                <div class="mt-0.5">
-                                                    @if($analysis['relationship']['quality'] === 'Excellent')
-                                                        <flux:icon.check-circle class="size-5"/>
-                                                    @elseif($analysis['relationship']['quality'] === 'Challenging')
-                                                        <flux:icon.exclamation-circle class="size-5"/>
-                                                    @else
-                                                        <flux:icon.information-circle class="size-5"/>
-                                                    @endif
-                                                </div>
-                                                <div>
-                                                    <h5 class="text-sm font-bold">
-                                                        {{ $analysis['relationship']['label'] }} {{ __('Relationship') }}
-                                                    </h5>
-                                                    <p class="text-xs opacity-90 mt-0.5 leading-relaxed">
-                                                        {{ $analysis['relationship']['desc'] }}
-                                                    </p>
+                                        <!-- Relationship Infos -->
+                                        <div class="mt-4 grid grid-cols-1 {{ $analysis['partner_compatibility'] ? 'sm:grid-cols-2' : '' }} gap-4">
+                                            <!-- Element Relationship Info -->
+                                            <div
+                                                class="p-3 rounded-lg border border-zinc-100 dark:border-zinc-700 {{ $analysis['relationship']['color'] }} dark:bg-opacity-10">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="mt-0.5">
+                                                        @if($analysis['relationship']['quality'] === 'Excellent')
+                                                            <flux:icon.check-circle class="size-5"/>
+                                                        @elseif($analysis['relationship']['quality'] === 'Challenging')
+                                                            <flux:icon.exclamation-circle class="size-5"/>
+                                                        @else
+                                                            <flux:icon.information-circle class="size-5"/>
+                                                        @endif
+                                                    </div>
+                                                    <div>
+                                                        <h5 class="text-sm font-bold">
+                                                            {{ $analysis['relationship']['label'] }} {{ __('Relationship') }}
+                                                        </h5>
+                                                        <p class="text-xs opacity-90 mt-0.5 leading-relaxed">
+                                                            {{ $analysis['relationship']['desc'] }}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
+
+                                            <!-- Partner Compatibility Info -->
+                                            @if($analysis['partner_compatibility'])
+                                                <div
+                                                    class="p-3 rounded-lg border border-zinc-100 dark:border-zinc-700 {{ $analysis['partner_compatibility']['color'] }} dark:bg-opacity-10">
+                                                    <div class="flex items-start gap-3">
+                                                        <div class="mt-0.5">
+                                                            @if($analysis['partner_compatibility']['quality'] === 'Excellent')
+                                                                <flux:icon.heart class="size-5 fill-current"/>
+                                                            @elseif($analysis['partner_compatibility']['quality'] === 'Challenging')
+                                                                <flux:icon.bolt class="size-5 fill-current"/>
+                                                            @else
+                                                                <flux:icon.star class="size-5 fill-current"/>
+                                                            @endif
+                                                        </div>
+                                                        <div>
+                                                            <h5 class="text-sm font-bold">
+                                                                {{ __('Partner Compatibility') }}: {{ $analysis['partner_compatibility']['label'] }}
+                                                            </h5>
+                                                            <p class="text-xs opacity-90 mt-0.5 leading-relaxed">
+                                                                {{ $analysis['partner_compatibility']['desc'] }}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
                                         </div>
 
                                     </div>
@@ -318,20 +373,16 @@ class extends Component {
                             </div>
                         </div>
                     @endforeach
+                </div>
+            @endif
 
-                    {{-- Family Members Management (wenn Feature aktiv) --}}
-                    @php
-                        $hasFamilyFeature = auth()->user()->hasFeature('family');
-                    @endphp
-                    @if($hasFamilyFeature)
-                        <div class="mt-12">
-                            <livewire:modules.bagua.managefamilymembers
-                                :customer="$customer"
-                                :key="'family-'.$customer->id"
-                            />
-                        </div>
-                    @endif
-
+            <!-- TAB 3: FAMILY -->
+            @if($tab === 'family' && auth()->user()->hasFeature('family'))
+                <div class="space-y-6">
+                    <livewire:modules.bagua.managefamilymembers
+                        :customer="$customer"
+                        :key="'family-'.$customer->id"
+                    />
                 </div>
             @endif
 

@@ -18,6 +18,11 @@ class Feature extends Model
         'active',
         'is_default',
         'order',
+        'purchase_type',
+        'renewal_period',
+        'default_quota',
+        'ninja_id',
+        'included_by_id',
     ];
 
     // Definiere welche Felder übersetzbar sind
@@ -32,5 +37,15 @@ class Feature extends Model
     public function userFeatures(): HasMany
     {
         return $this->hasMany(UserFeature::class);
+    }
+
+    public function includedBy(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Feature::class, 'included_by_id');
+    }
+
+    public function includes(): HasMany
+    {
+        return $this->hasMany(Feature::class, 'included_by_id');
     }
 }

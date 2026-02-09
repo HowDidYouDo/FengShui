@@ -95,7 +95,15 @@ class Index extends Component
     {
         $this->validate();
 
-        Auth::user()->customers()->create([
+        $user = Auth::user();
+
+        // Quota Check
+        if (! $user->hasAvailableQuota('crm', $user->customers()->count())) {
+            $this->dispatch('notify', message: __('Quota exceeded! Please purchase additional licenses in the shop.'), type: 'error');
+            return;
+        }
+
+        $user->customers()->create([
             'name' => $this->name,
             'email' => $this->email,
             'notes' => $this->notes,
@@ -234,8 +242,7 @@ class Index extends Component
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('name', 'like', '%' . $this->search . '%')
-                        ->orWhere('email', 'like', '%' . $this->search . '%')
-                        ->orWhere('birth_place', 'like', '%' . $this->search . '%');
+                        ->orWhere('email', 'like', '%' . $this->search . '%');
                 });
             })
             ->when($this->genderFilter, function ($query) {

@@ -24,12 +24,54 @@ class Customer extends Model
         'is_self_profile',
     ];
 
-    protected $casts = [
-        'birth_date' => 'date',
-        'is_self_profile' => 'boolean',
-        // birth_time lassen wir als string, da Carbon bei reinen Zeitfeldern manchmal zickt,
-        // kann aber bei Bedarf zu 'datetime:H:i' geändert werden.
-    ];
+    protected function casts(): array
+    {
+        return [
+            'birth_place' => 'encrypted',
+            'billing_street' => 'encrypted',
+            'is_self_profile' => 'boolean',
+        ];
+    }
+
+    public function getBirthDateAttribute($value)
+    {
+        if (!$value) return null;
+
+        $decrypted = null;
+
+        try {
+            // 1. Try decrypting (with unserialization - standard for encrypt() helper)
+            $decrypted = decrypt($value);
+        } catch (\Exception $e) {
+            try {
+                // 2. Try decrypting (without unserialization - standard for 'encrypted' cast)
+                $decrypted = decrypt($value, false);
+            } catch (\Exception $e2) {
+                // 3. Fallback: it might not be encrypted at all (old data)
+                if (is_string($value) && str_starts_with($value, 'eyJpdi')) {
+                    // It looks encrypted but we can't decrypt it (e.g. wrong APP_KEY)
+                    return null;
+                }
+                $decrypted = $value;
+            }
+        }
+
+        try {
+            return $decrypted ? \Illuminate\Support\Carbon::parse($decrypted) : null;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    public function setBirthDateAttribute($value)
+    {
+        if ($value instanceof \DateTimeInterface) {
+            $value = $value->format('Y-m-d');
+        }
+
+        // Use non-serialized encryption for consistency with built-in 'encrypted' cast
+        $this->attributes['birth_date'] = $value ? encrypt($value, false) : null;
+    }
 
     protected static function boot()
     {

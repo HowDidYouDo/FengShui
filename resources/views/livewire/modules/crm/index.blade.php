@@ -1,8 +1,17 @@
 {{-- resources/views/livewire/modules/crm/index.blade.php --}}
 <div>
     <flux:heading size="xl">{{ __('Clients') }}</flux:heading>
-    <flux:subheading class="mb-6">
+    <flux:subheading class="mb-6 flex items-center">
         {{ __('Manage your client profiles.') }}
+        @php
+            $quota = auth()->user()->getFeatureQuota('crm');
+            $usage = auth()->user()->customers()->count();
+        @endphp
+        @if($quota !== null)
+            <span class="ml-2 text-xs font-medium px-2 py-0.5 rounded-full {{ $usage >= $quota ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400' }}">
+                {{ __('Quota:') }} {{ $usage }} / {{ $quota }}
+            </span>
+        @endif
     </flux:subheading>
 
     {{-- Header Actions --}}
@@ -54,7 +63,11 @@
                         >
                             {{ __('Name') }}
                             @if($sortField === 'name')
-                                <flux:icon.{{ $sortDirection === 'asc' ? 'chevron-up' : 'chevron-down' }} class="ml-1 w-4 h-4" />
+                                @if($sortDirection === 'asc')
+                                    <flux:icon.chevron-up class="ml-1 w-4 h-4" />
+                                @else
+                                    <flux:icon.chevron-down class="ml-1 w-4 h-4" />
+                                @endif
                             @endif
                         </flux:button>
                     </th>
@@ -68,7 +81,11 @@
                         >
                             {{ __('Birth Date') }}
                             @if($sortField === 'birth_date')
-                                <flux:icon.{{ $sortDirection === 'asc' ? 'chevron-up' : 'chevron-down' }} class="ml-1 w-4 h-4" />
+                                @if($sortDirection === 'asc')
+                                    <flux:icon.chevron-up class="ml-1 w-4 h-4" />
+                                @else
+                                    <flux:icon.chevron-down class="ml-1 w-4 h-4" />
+                                @endif
                             @endif
                         </flux:button>
                     </th>
@@ -100,7 +117,7 @@
                             @endif
                         </td>
                         <td class="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                            {{ $customer->birth_date ? $customer->birth_date->format('d.m.Y') : '-' }}
+                            {{ $customer->birth_date ? $customer->birth_date->format(__('date_format')) : '-' }}
                         </td>
                         <td class="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
                             {{ $customer->birth_place ?? '-' }}

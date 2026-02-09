@@ -8,9 +8,12 @@ use Livewire\WithPagination;
 new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
 
+    public ?string $target = null;
+
     public function mount()
     {
         $user = Auth::user();
+        $this->target = request()->query('target');
 
         // Logik-Check: Hat User das 'clients' Feature?
         if (!$user->hasFeature('crm')) {
@@ -18,7 +21,10 @@ new #[Layout('components.layouts.app')] class extends Component {
             $selfProfile = $user->customers()->where('is_self_profile', true)->first();
 
             if ($selfProfile) {
-                return redirect()->route('modules.bagua.show', $selfProfile);
+                return redirect()->route('modules.bagua.show', [
+                    'customer' => $selfProfile,
+                    'tab' => $this->target ?? 'analysis'
+                ]);
             } else {
                 // Fallback (sollte nicht passieren)
                 return redirect()->route('profile.edit');
@@ -66,7 +72,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 </a>
 
                 @foreach($customers as $customer)
-                    <a href="{{ route('modules.bagua.show', $customer) }}" wire:navigate
+                    <a href="{{ route('modules.bagua.show', ['customer' => $customer, 'tab' => $target ?? 'analysis']) }}" wire:navigate
                         class="group relative flex flex-col p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:shadow-md hover:border-brand-blue/30 transition-all">
 
                         <div class="flex items-start justify-between mb-4">

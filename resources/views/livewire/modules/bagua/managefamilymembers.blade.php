@@ -4,6 +4,7 @@ use App\Models\Customer;
 use App\Models\FamilyMember;
 use Livewire\Volt\Component;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Validation\Rule;
 
 new class extends Component {
     use AuthorizesRequests;
@@ -40,7 +41,7 @@ new class extends Component {
 
         $this->validate([
             'name' => 'required|string|max:255',
-            'relationship' => 'nullable|string|max:100',
+            'relationship' => ['nullable', Rule::in(array_keys(FamilyMember::getRelationships()))],
             'birth_date' => 'required|date',
             'birth_time' => 'required|date_format:H:i',
             'birth_place' => 'required|string|max:255',
@@ -93,7 +94,7 @@ new class extends Component {
 
         $this->validate([
             'name' => 'required|string|max:255',
-            'relationship' => 'nullable|string|max:100',
+            'relationship' => ['nullable', Rule::in(array_keys(FamilyMember::getRelationships()))],
             'birth_date' => 'required|date',
             'birth_time' => 'required|date_format:H:i',
             'birth_place' => 'required|string|max:255',
@@ -173,7 +174,7 @@ new class extends Component {
                             <div class="min-w-0 flex-1">
                                 <h4 class="font-bold text-zinc-900 dark:text-white truncate">{{ $member->name }}</h4>
                                 @if($member->relationship)
-                                    <p class="text-xs text-zinc-500">{{ $member->relationship }}</p>
+                                    <p class="text-xs text-zinc-500">{{ $member->getRelationshipLabel() }}</p>
                                 @else
                                     <p class="text-xs text-zinc-400 italic">{{ __('No relationship specified') }}</p>
                                 @endif
@@ -263,12 +264,16 @@ new class extends Component {
                         required
                     />
 
-                    <flux:input
+                    <flux:select
                         wire:model="relationship"
                         :label="__('Relationship')"
-                        :placeholder="__('e.g. Partner, Child, Parent')"
-                        :description="__('Optional - e.g. Partner, Child, Parent')"
-                    />
+                        :placeholder="__('Select relationship...')"
+                    >
+                        <flux:select.option value="">{{ __('No relationship specified') }}</flux:select.option>
+                        @foreach(FamilyMember::getRelationships() as $key => $label)
+                            <flux:select.option value="{{ $key }}">{{ $label }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
                 </div>
 
                 <!-- Birth Data (Required for Gua) -->
@@ -378,12 +383,16 @@ new class extends Component {
                         required
                     />
 
-                    <flux:input
+                    <flux:select
                         wire:model="relationship"
                         :label="__('Relationship')"
-                        :placeholder="__('e.g. Partner, Child, Parent')"
-                        :description="__('Optional - e.g. Partner, Child, Parent')"
-                    />
+                        :placeholder="__('Select relationship...')"
+                    >
+                        <flux:select.option value="">{{ __('No relationship specified') }}</flux:select.option>
+                        @foreach(FamilyMember::getRelationships() as $key => $label)
+                            <flux:select.option value="{{ $key }}">{{ $label }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
                 </div>
 
                 <!-- Birth Data (Required for Gua) -->

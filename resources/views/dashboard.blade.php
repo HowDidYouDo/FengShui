@@ -32,7 +32,7 @@
                         }
 
                         $expiresText = ($license && $license->expires_at)
-                            ? __('Expires: :date', ['date' => $license->expires_at->format('d.m.Y')])
+                            ? __('Expires: :date', ['date' => $license->expires_at->format(__('date_format'))])
                             : __('Lifetime Access');
                     @endphp
 

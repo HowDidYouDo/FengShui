@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'invoice_ninja' => [
+        'api_secret_token' => env('INVOICE_NINJA_API_SECRET_TOKEN'),
+    ],
+
 ];
