@@ -4,6 +4,7 @@ use App\Models\Project;
 use Livewire\Volt\Component;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Livewire\Attributes\On;
 
 new class extends Component {
     use AuthorizesRequests;
@@ -29,19 +30,31 @@ new class extends Component {
     {
         $this->authorize('update', $project);
         $this->project = $project;
-
-        $this->name = $project->name;
-        $this->settled_year = $project->settled_year;
-        $this->compass_direction = $project->compass_direction;
-        $this->sitting_direction = $project->sitting_direction;
-        $this->ventilation_direction = $project->ventilation_direction;
-        $this->facing_mountain = $project->facing_mountain;
-        $this->is_replacement_chart = $project->is_replacement_chart;
-        $this->special_chart_type = $project->special_chart_type;
+        
+        $this->loadProjectData();
 
         $this->facingMountainOptions = collect(\App\Services\Metaphysics\FlyingStarService::MOUNTAINS)
             ->mapWithKeys(fn($m) => [$m['name'] => $m['name']])
             ->toArray();
+    }
+
+    public function loadProjectData()
+    {
+        $this->name = $this->project->name;
+        $this->settled_year = $this->project->settled_year;
+        $this->compass_direction = $this->project->compass_direction;
+        $this->sitting_direction = $this->project->sitting_direction;
+        $this->ventilation_direction = $this->project->ventilation_direction;
+        $this->facing_mountain = $this->project->facing_mountain;
+        $this->is_replacement_chart = $this->project->is_replacement_chart;
+        $this->special_chart_type = $this->project->special_chart_type;
+    }
+
+    #[On('project-updated')]
+    public function refreshProject()
+    {
+        $this->project->refresh();
+        $this->loadProjectData();
     }
 
     public function save()
@@ -72,33 +85,22 @@ new class extends Component {
         ]);
 
         $this->showModal = false;
-        $this->dispatch('project-updated');
+        $this->dispatch('project-updated'); // Global refresh
     }
 
     private function calculatePeriod(int $year): int
     {
-        if ($year >= 2044)
-            return 1;
-        if ($year >= 2024)
-            return 9;
-        if ($year >= 2004)
-            return 8;
-        if ($year >= 1984)
-            return 7;
-        if ($year >= 1964)
-            return 6;
-        if ($year >= 1944)
-            return 5;
-        if ($year >= 1924)
-            return 4;
-        if ($year >= 1904)
-            return 3;
-        if ($year >= 1884)
-            return 2;
-        if ($year >= 1864)
-            return 1;
-        if ($year >= 1844)
-            return 9;
+        if ($year >= 2044) return 1;
+        if ($year >= 2024) return 9;
+        if ($year >= 2004) return 8;
+        if ($year >= 1984) return 7;
+        if ($year >= 1964) return 6;
+        if ($year >= 1944) return 5;
+        if ($year >= 1924) return 4;
+        if ($year >= 1904) return 3;
+        if ($year >= 1884) return 2;
+        if ($year >= 1864) return 1;
+        if ($year >= 1844) return 9;
         return 8; // Fallback
     }
 };
@@ -144,6 +146,13 @@ new class extends Component {
                                         :label="__('North Deviation (Compass / Facing) (°)')" placeholder="0.00" required/>
                             <p class="text-[10px] text-zinc-400">{{ __('Compass reading causing the North deviation.') }}
                             </p>
+                            @if($project->floorPlans->count() > 0)
+                                <div class="pt-2">
+                                    <flux:button variant="primary" class="w-full" icon="sparkles" wire:click="$dispatch('openCompassAssistant')">
+                                        {{ __('Compass Assistant') }}
+                                    </flux:button>
+                                </div>
+                            @endif
                         </div>
 
                         <!-- SITTING -->
@@ -211,4 +220,6 @@ new class extends Component {
             </form>
         </div>
     </flux:modal>
+    
+    <livewire:project.compass-assistant :project="$project" />
 </div>

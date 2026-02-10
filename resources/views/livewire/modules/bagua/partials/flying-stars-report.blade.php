@@ -1,13 +1,29 @@
 @php
     $fsService = app(\App\Services\Metaphysics\FlyingStarService::class);
-    $compass = $project->compass_direction ?? 0;
+    $northDirection = $project->compass_direction ?? 0;
+    // The facing direction (Blickrichtung) is the active direction for Flying Stars
+    $facingDirection = $project->getActiveDirection() ?? 0;
     
     $chart = $fsService->calculateChart(
         $project->period,
-        $compass,
-        $project->facing_mountain,
+        $facingDirection,
+        null, // Auto-calculate mountain from facingDegree (don't use stale DB override)
         (bool) $project->is_replacement_chart
     );
+
+    // Standard Lo Shu Grid Mapping: maps Gua number to [col, row] (0-indexed)
+    // Visual: S at top, N at bottom (standard Feng Shui orientation)
+    $loShuGrid = [
+        4 => ['col' => 0, 'row' => 0], // SE (top-left)
+        9 => ['col' => 1, 'row' => 0], // S  (top-center)
+        2 => ['col' => 2, 'row' => 0], // SW (top-right)
+        3 => ['col' => 0, 'row' => 1], // E  (middle-left)
+        5 => ['col' => 1, 'row' => 1], // C  (center)
+        7 => ['col' => 2, 'row' => 1], // W  (middle-right)
+        8 => ['col' => 0, 'row' => 2], // NE (bottom-left)
+        1 => ['col' => 1, 'row' => 2], // N  (bottom-center)
+        6 => ['col' => 2, 'row' => 2], // NW (bottom-right)
+    ];
 
     $gridLabels = [
         2 => 'Southwest (KUN)',
@@ -56,9 +72,10 @@
         <div class="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
             <span
                 class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{{ __('Facing Direction (°)') }}</span>
-            <div class="text-3xl font-black text-brand-orange">{{ $compass }}°</div>
+            <div class="text-3xl font-black text-brand-orange">{{ $facingDirection }}°</div>
             <p class="text-xs text-zinc-500 mt-1">{{ __('Mountain') }}:
-                <strong>{{ $project->facing_mountain ?: 'Auto' }}</strong></p>
+                <strong>{{ $chart['facing_mountain'] }}</strong></p>
+            <p class="text-xs text-zinc-400 mt-0.5">{{ __('Sitting') }}: {{ $chart['sitting_mountain'] }}</p>
         </div>
         <div class="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
             <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{{ __('Chart Type') }}</span>
@@ -136,6 +153,92 @@
                                   stroke="#ef4444" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
                         </g>
 
+                        {{-- Kompassrose basierend auf $compass (Nordrichtung) --}}
+                        {{-- Bei 0° zeigt Nord direkt nach unten, bei 342° leicht nach unten-rechts --}}
+                        @php
+                            $cx = ($bounds['x1'] + $bounds['x2']) / 2;
+                            $cy = ($bounds['y1'] + $bounds['y2']) / 2;
+                            $halfW = ($bounds['x2'] - $bounds['x1']) / 2;
+                            $halfH = ($bounds['y2'] - $bounds['y1']) / 2;
+                            $compassFontSize = max(14, ($bounds['x2'] - $bounds['x1']) / 28);
+
+                            // 8 Himmelsrichtungen mit Winkel-Offset von Nord (Grad, Uhrzeigersinn)
+                            $compassDirs = [
+                                ['N',  0,   true],
+                                ['NO', 45,  false],
+                                ['O',  90,  true],
+                                ['SO', 135, false],
+                                ['S',  180, true],
+                                ['SW', 225, false],
+                                ['W',  270, true],
+                                ['NW', 315, false],
+                            ];
+                        @endphp
+
+                        <g class="compass-rose" opacity="0.85">
+                            @foreach($compassDirs as $dir)
+                                @php
+                                    [$label, $offsetDeg, $isCardinal] = $dir;
+                                    $totalRad = deg2rad($northDirection + $offsetDeg);
+
+                                    // Richtungsvektor: Bei 0° zeigt Nord nach unten (+Y)
+                                    $dirX = -sin($totalRad);
+                                    $dirY = cos($totalRad);
+
+                                    // Ray-Rect-Intersection: Wo trifft die Linie den Gebäuderand?
+                                    $tCandidates = [];
+                                    if (abs($dirX) > 0.001) {
+                                        $tX = $dirX > 0
+                                            ? ($bounds['x2'] - $cx) / $dirX
+                                            : ($bounds['x1'] - $cx) / $dirX;
+                                        if ($tX > 0) $tCandidates[] = $tX;
+                                    }
+                                    if (abs($dirY) > 0.001) {
+                                        $tY = $dirY > 0
+                                            ? ($bounds['y2'] - $cy) / $dirY
+                                            : ($bounds['y1'] - $cy) / $dirY;
+                                        if ($tY > 0) $tCandidates[] = $tY;
+                                    }
+                                    $tBorder = !empty($tCandidates) ? min($tCandidates) : $halfW;
+
+                                    // Linie: knapp über den Gebäuderand hinaus (+5%)
+                                    $lineEndX = $cx + $dirX * $tBorder * 1.05;
+                                    $lineEndY = $cy + $dirY * $tBorder * 1.05;
+
+                                    // Label: etwas weiter außerhalb (+15%)
+                                    $labelPosX = $cx + $dirX * $tBorder * 1.15;
+                                    $labelPosY = $cy + $dirY * $tBorder * 1.15;
+                                @endphp
+
+                                {{-- Richtungslinie --}}
+                                <line x1="{{ $cx }}" y1="{{ $cy }}"
+                                      x2="{{ $lineEndX }}" y2="{{ $lineEndY }}"
+                                      stroke="{{ $isCardinal ? '#dc2626' : '#9ca3af' }}"
+                                      stroke-width="{{ $isCardinal ? 2.5 : 1.5 }}"
+                                      vector-effect="non-scaling-stroke"
+                                      {!! $isCardinal ? '' : 'stroke-dasharray="6 3"' !!}/>
+
+                                {{-- Richtungsbezeichnung --}}
+                                <text x="{{ $labelPosX }}" y="{{ $labelPosY + ($compassFontSize * 0.35) }}"
+                                      font-size="{{ $compassFontSize * ($isCardinal ? 1.0 : 0.8) }}"
+                                      font-weight="{{ $isCardinal ? '900' : '700' }}"
+                                      fill="{{ $isCardinal ? '#dc2626' : '#6b7280' }}"
+                                      text-anchor="middle"
+                                      paint-order="stroke"
+                                      stroke="white" stroke-width="4" stroke-linejoin="round"
+                                >{{ $label }}</text>
+                            @endforeach
+
+                            {{-- Herz im Zentrum --}}
+                            <text x="{{ $cx }}" y="{{ $cy + $compassFontSize * 0.4 }}"
+                                  font-size="{{ $compassFontSize * 1.3 }}"
+                                  fill="#dc2626"
+                                  text-anchor="middle"
+                                  paint-order="stroke"
+                                  stroke="white" stroke-width="4" stroke-linejoin="round"
+                            >♥</text>
+                        </g>
+
                         {{-- Sektor-Farben (Hintergrund) & Gua-Nummer --}}
                         @foreach($currentFloorPlan->baguaNotes as $note)
                             @php
@@ -143,12 +246,11 @@
                                 if (!$noteData && $note->content) $noteData = json_decode(json_decode($note->content, true), true) ?? [];
                                 $bgcolor = $noteData['bg_color'] ?? '#d1d5db';
                                 $color = $noteData['color'] ?? '#6b7280';
-                                $row = 2 - floor(($note->gua_number - 1) / 3);
-                                $col = 2 - (($note->gua_number - 1) % 3);
+                                $gridPos = $loShuGrid[$note->gua_number] ?? ['col' => 1, 'row' => 1];
                                 $sectorWidth = ($bounds['x2'] - $bounds['x1']) / 3;
                                 $sectorHeight = ($bounds['y2'] - $bounds['y1']) / 3;
-                                $sectorX = $bounds['x1'] + $col * $sectorWidth;
-                                $sectorY = $bounds['y1'] + $row * $sectorHeight;
+                                $sectorX = $bounds['x1'] + $gridPos['col'] * $sectorWidth;
+                                $sectorY = $bounds['y1'] + $gridPos['row'] * $sectorHeight;
                                 $fontSize = max(12, ($bounds['x2']-$bounds['x1'])/25);
                             @endphp
                             <rect x="{{ $sectorX }}" y="{{ $sectorY }}" width="{{ $sectorWidth }}"
@@ -165,12 +267,11 @@
                         {{-- Flying Stars (Kräftig) --}}
                         @foreach($currentFloorPlan->baguaNotes as $note)
                             @php
-                                $row = 2 - floor(($note->gua_number - 1) / 3);
-                                $col = 2 - (($note->gua_number - 1) % 3);
+                                $gridPos = $loShuGrid[$note->gua_number] ?? ['col' => 1, 'row' => 1];
                                 $sectorWidth = ($bounds['x2'] - $bounds['x1']) / 3;
                                 $sectorHeight = ($bounds['y2'] - $bounds['y1']) / 3;
-                                $sectorX = $bounds['x1'] + $col * $sectorWidth;
-                                $sectorY = $bounds['y1'] + $row * $sectorHeight;
+                                $sectorX = $bounds['x1'] + $gridPos['col'] * $sectorWidth;
+                                $sectorY = $bounds['y1'] + $gridPos['row'] * $sectorHeight;
                                 $fontSize = max(12, ($bounds['x2']-$bounds['x1'])/25);
 
                                 // Use calculated chart values instead of stored DB values
@@ -245,6 +346,49 @@
                                 @endforeach
                             @endif
                         @endforeach
+
+                        {{-- Center Palace (Gua 5) – Flying Stars --}}
+                        @php
+                            $centerGridPos = $loShuGrid[5];
+                            $cSectorWidth = ($bounds['x2'] - $bounds['x1']) / 3;
+                            $cSectorHeight = ($bounds['y2'] - $bounds['y1']) / 3;
+                            $cSectorX = $bounds['x1'] + $centerGridPos['col'] * $cSectorWidth;
+                            $cSectorY = $bounds['y1'] + $centerGridPos['row'] * $cSectorHeight;
+                            $cFontSize = max(12, ($bounds['x2']-$bounds['x1'])/25);
+                            $cMountain = $chart['mountain'][5] ?? null;
+                            $cWater = $chart['water'][5] ?? null;
+                            $cBase = $chart['base'][5] ?? null;
+                        @endphp
+                        <g class="flying-stars center-palace font-black" style="font-size: {{ $cFontSize }}px">
+                            @if($cMountain)
+                                <text x="{{ $cSectorX + $cSectorWidth * 0.2 }}"
+                                      y="{{ $cSectorY + $cSectorHeight * 0.3 }}" fill="white" stroke="white"
+                                      stroke-width="3" stroke-linejoin="round"
+                                      text-anchor="middle">{{ $chart['mountain_flight_direction'] }}{{ $cMountain }}</text>
+                                <text x="{{ $cSectorX + $cSectorWidth * 0.2 }}"
+                                      y="{{ $cSectorY + $cSectorHeight * 0.3 }}" fill="#b45309"
+                                      text-anchor="middle">{{ $chart['mountain_flight_direction'] }}{{ $cMountain }}</text>
+                            @endif
+                            @if($cWater)
+                                <text x="{{ $cSectorX + $cSectorWidth * 0.8 }}"
+                                      y="{{ $cSectorY + $cSectorHeight * 0.3 }}" fill="white" stroke="white"
+                                      stroke-width="3" stroke-linejoin="round"
+                                      text-anchor="middle">{{ $chart['water_flight_direction'] }}{{ $cWater }}</text>
+                                <text x="{{ $cSectorX + $cSectorWidth * 0.8 }}"
+                                      y="{{ $cSectorY + $cSectorHeight * 0.3 }}" fill="#1d4ed8"
+                                      text-anchor="middle">{{ $chart['water_flight_direction'] }}{{ $cWater }}</text>
+                            @endif
+                            @if($cBase)
+                                <text x="{{ $cSectorX + $cSectorWidth * 0.5 }}"
+                                      y="{{ $cSectorY + $cSectorHeight * 0.85 }}" fill="white" stroke="white"
+                                      stroke-width="3" stroke-linejoin="round"
+                                      text-anchor="middle">{{ $cBase }}</text>
+                                <text x="{{ $cSectorX + $cSectorWidth * 0.5 }}"
+                                      y="{{ $cSectorY + $cSectorHeight * 0.85 }}" fill="#52525b"
+                                      text-anchor="middle">{{ $cBase }}</text>
+                            @endif
+                        </g>
+
                     </svg>
                 @endif
             </div>

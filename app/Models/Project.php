@@ -63,15 +63,26 @@ class Project extends Model
     }
 
     /**
-     * Gibt die aktive Direction zurück (Facing ODER Ventilation)
+     * Gibt die aktive Blickrichtung (Facing Direction) für die Flying Stars Berechnung zurück.
+     * compass_direction = Nordabweichung auf dem Grundriss (für Kompassrose)
+     * ventilation_direction = tatsächliche Blickrichtung (Facing) des Gebäudes
+     * sitting_direction = Gegenrichtung (180° von Facing)
      */
     public function getActiveDirection(): ?float
     {
-         // If "Use Facing" (Compass) is checked, or if we have it.
-         // Logic: Compass Direction is the rotation.
+         // ventilation_direction stores the actual facing direction (Blickrichtung)
+         // compass_direction stores the North deviation on the floor plan (for compass rose only)
          return $this->use_facing_direction
-            ? $this->compass_direction
-            : $this->ventilation_direction; // Legacy fallback?
+            ? $this->ventilation_direction
+            : $this->ventilation_direction; // Both paths now use ventilation_direction as it's the facing
+    }
+
+    /**
+     * Gibt die Nordabweichung auf dem Grundriss zurück (für Kompassrose)
+     */
+    public function getNorthDirection(): ?float
+    {
+        return $this->compass_direction;
     }
 
     public function getSittingDirection(): ?float

@@ -26,7 +26,7 @@ class FlyingStarService
         ['name' => 'W1 (Geng)', 'min' => 247.5, 'max' => 262.5, 'gua' => 7, 'yin_yang' => '+'],
         ['name' => 'W2 (You)', 'min' => 262.5, 'max' => 277.5, 'gua' => 7, 'yin_yang' => '-'],
         ['name' => 'W3 (Xin)', 'min' => 277.5, 'max' => 292.5, 'gua' => 7, 'yin_yang' => '-'],
-        ['name' => 'NW1 (Xu)', 'min' => 292.5, 'max' => 307.5, 'gua' => 6, 'yin_yang' => '-'],
+        ['name' => 'NW1 (Xu)', 'min' => 292.5, 'max' => 307.5, 'gua' => 6, 'yin_yang' => '+'],
         ['name' => 'NW2 (Qian)', 'min' => 307.5, 'max' => 322.5, 'gua' => 6, 'yin_yang' => '+'],
         ['name' => 'NW3 (Hai)', 'min' => 322.5, 'max' => 337.5, 'gua' => 6, 'yin_yang' => '+'],
     ];
@@ -104,8 +104,12 @@ class FlyingStarService
         }
 
         // 4. Fly the Stars
-        // Flight direction depends on the Yin/Yang of the STAR's home palace, mapped to the Original Mountain Direction
-        $mountainDirection = $this->getFlightDirection($mountainStarInCenter, $sittingMountainInfo);
+        // Flight direction depends on the Yin/Yang of the STAR's home palace sub-mountain.
+        // IMPORTANT: Mountain star and Water star have OPPOSITE flight rules:
+        //   Water star:   Yang → forward (+), Yin → backward (-)
+        //   Mountain star: Yang → backward (-), Yin → forward (+)  [INVERTED!]
+        $mountainYangForward = $this->getFlightDirection($mountainStarInCenter, $sittingMountainInfo);
+        $mountainDirection = $mountainYangForward; // Yang -> forward, Yin -> backward
         $mountainStars = $this->fly($mountainStarInCenter, $mountainDirection);
 
         $waterDirection = $this->getFlightDirection($waterStarInCenter, $mountainInfo);
@@ -119,6 +123,7 @@ class FlyingStarService
             'sitting_mountain' => $sittingMountainInfo['name'],
             'needs_replacement' => $needsReplacement,
             'mountain_flight_direction' => $mountainDirection ? '+' : '-',
+            'mountain_yin_yang' => $mountainYangForward ? '+' : '-',
             'water_flight_direction' => $waterDirection ? '+' : '-',
         ];
     }
