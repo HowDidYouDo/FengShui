@@ -199,14 +199,7 @@ new class extends Component {
                         {{ $show_bagua_aspirations ? __('Showing German Life Aspirations (e.g. Success, Knowledge)') : __('Showing Asian Trigram Names (e.g. Qian, Kun)') }}
                     </flux:text>
                 </div>
-                <button wire:click="$set('show_bagua_aspirations', {{ $show_bagua_aspirations ? 'false' : 'true' }})"
-                    type="button"
-                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 {{ $show_bagua_aspirations ? 'bg-brand-blue' : 'bg-zinc-200 dark:bg-zinc-700' }}"
-                    role="switch" aria-checked="{{ $show_bagua_aspirations ? 'true' : 'false' }}">
-                    <span class="sr-only">{{ __('Toggle Bagua Display') }}</span>
-                    <span
-                        class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {{ $show_bagua_aspirations ? 'translate-x-6' : 'translate-x-1' }}"></span>
-                </button>
+                <flux:switch wire:model.live="show_bagua_aspirations" />
             </div>
 
             <div class="flex items-center gap-4">

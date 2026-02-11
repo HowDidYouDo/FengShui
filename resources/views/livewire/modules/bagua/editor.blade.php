@@ -403,11 +403,8 @@ new class extends Component {
             </label>
             <input type="number" wire:model.live="ventilationDirection" min="0" max="360" step="1"
                 class="w-20 px-2 py-1 text-sm border border-zinc-300 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white"
-                placeholder="0-360">
+                placeholder="0-360" disabled>
             <span class="text-xs text-zinc-400">°</span>
-            <flux:button size="sm" wire:click="updateVentilationDirection">
-                {{ __('Apply') }}
-            </flux:button>
         </div>
 
         <div class="flex gap-2">

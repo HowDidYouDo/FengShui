@@ -93,10 +93,10 @@ class CompassAssistant extends Component
         // Facing = Compass Reading.
         // Sitting = Compass Reading + 180.
 
-        $this->calculatedFacing = round($this->compassReading, 2);
+        $this->calculatedSitting = round($this->compassReading, 2);
         
         $sitting = ($this->compassReading + 180) % 360;
-        $this->calculatedSitting = round($sitting, 2);
+        $this->calculatedFacing = round($sitting, 2);
     }
 
     public function save()
