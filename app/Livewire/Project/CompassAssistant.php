@@ -80,7 +80,7 @@ class CompassAssistant extends Component
         // Example: Wall at Bottom (Arrow UP = 0°). Reading North (0°). Dev = 0.
         // Example: Wall at Right (Arrow LEFT = 270°). Reading East (90°). Dev = 90 - 270 = -180 = 180.
         
-        $deviation = ($this->compassReading - $this->imageArrowAngle);
+        $deviation = ($this->compassReading + $this->imageArrowAngle);
         
         // Normalize to 0-360 positive
         while ($deviation < 0) $deviation += 360;
