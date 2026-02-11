@@ -46,6 +46,7 @@ class User extends Authenticatable implements FilamentUser, HasMedia
         'birth_time',
         'gender',
         'locale',
+        'settings',
     ];
 
     /**
@@ -191,6 +192,7 @@ class User extends Authenticatable implements FilamentUser, HasMedia
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'birth_date' => 'date',
+            'settings' => 'array',
         ];
     }
 }

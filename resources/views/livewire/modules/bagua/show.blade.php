@@ -21,6 +21,9 @@ class extends Component {
 
     public Collection $floorPlans;
     public string $selectedFloorPlanId = '';
+    
+    // Toggle für Bagua-Anzeige: Asiatische Namen vs. Deutsche Lebensbereiche
+    public bool $showAspirations = false;
 
     public function mount(Customer $customer, ?string $tab = null): void
     {
@@ -35,6 +38,21 @@ class extends Component {
         if ($tab && in_array($tab, ['analysis', 'map', 'family', 'flying_stars'])) {
             $this->tab = $tab;
         }
+        
+        // Load user preference for Bagua display
+        $user = auth()->user();
+        $this->showAspirations = $user->settings['show_bagua_aspirations'] ?? false;
+    }
+    
+    public function toggleAspirations(): void
+    {
+        $this->showAspirations = !$this->showAspirations;
+        
+        // Save to user settings
+        $user = auth()->user();
+        $settings = $user->settings ?? [];
+        $settings['show_bagua_aspirations'] = $this->showAspirations;
+        $user->update(['settings' => $settings]);
     }
 
     protected $listeners = ['project-updated' => '$refresh'];
@@ -492,6 +510,25 @@ class extends Component {
                             </div>
                         </div>
                     @endforeach
+                    
+                    {{-- Toggle Switch für Bagua-Anzeige --}}
+                    <div class="flex items-center justify-end gap-3 mb-4">
+                        <span class="text-sm text-zinc-600 dark:text-zinc-400">
+                            {{ $showAspirations ? __('Life Areas') : __('Asian Names') }}
+                        </span>
+                        <button 
+                            wire:click="toggleAspirations"
+                            type="button"
+                            class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 {{ $showAspirations ? 'bg-brand-blue' : 'bg-zinc-200 dark:bg-zinc-700' }}"
+                            role="switch"
+                            aria-checked="{{ $showAspirations ? 'true' : 'false' }}"
+                        >
+                            <span class="sr-only">{{ __('Toggle Bagua Display') }}</span>
+                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {{ $showAspirations ? 'translate-x-6' : 'translate-x-1' }}"></span>
+                        </button>
+                    </div>
+                    
+                    @include('livewire.modules.bagua.partials.residents-summary', ['project' => $this->project, 'showAspirations' => $showAspirations])    
                 </div>
             @endif
 

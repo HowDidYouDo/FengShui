@@ -13,38 +13,100 @@ class MingGuaCalculator
     // === CLASSICAL BAGUA TRIGRAMS (NEW) ===
     public const CLASSICAL_TRIGRAMS = [
         1 => [
-            'name' => 'KAN', 'symbol' => '☵', 'direction' => 'N', 'element' => 'Water',
-            'color' => '#3b82f6', 'bg_color' => '#dbeafe',
+            'name' => 'KAN',
+            'symbol' => '☵',
+            'direction' => 'N',
+            'element' => 'Water',
+            'color' => '#3b82f6',
+            'bg_color' => '#dbeafe',
         ],
         2 => [
-            'name' => 'KUN', 'symbol' => '☷', 'direction' => 'SW', 'element' => 'Earth',
-            'color' => '#d97706', 'bg_color' => '#fef3c7',
+            'name' => 'KUN',
+            'symbol' => '☷',
+            'direction' => 'SW',
+            'element' => 'Earth',
+            'color' => '#d97706',
+            'bg_color' => '#fef3c7',
         ],
         3 => [
-            'name' => 'CHEN', 'symbol' => '☳', 'direction' => 'E', 'element' => 'Wood',
-            'color' => '#059669', 'bg_color' => '#d1fae5',
+            'name' => 'CHEN',
+            'symbol' => '☳',
+            'direction' => 'E',
+            'element' => 'Wood',
+            'color' => '#059669',
+            'bg_color' => '#d1fae5',
         ],
         4 => [
-            'name' => 'SUN', 'symbol' => '☴', 'direction' => 'SE', 'element' => 'Wood',
-            'color' => '#10b981', 'bg_color' => '#bbf7d0',
+            'name' => 'SUN',
+            'symbol' => '☴',
+            'direction' => 'SE',
+            'element' => 'Wood',
+            'color' => '#10b981',
+            'bg_color' => '#bbf7d0',
         ],
         6 => [
-            'name' => 'CHIEN', 'symbol' => '☰', 'direction' => 'NW', 'element' => 'Metal',
-            'color' => '#6b7280', 'bg_color' => '#f3f4f6',
+            'name' => 'CHIEN',
+            'symbol' => '☰',
+            'direction' => 'NW',
+            'element' => 'Metal',
+            'color' => '#6b7280',
+            'bg_color' => '#f3f4f6',
         ],
         7 => [
-            'name' => 'TUI', 'symbol' => '☱', 'direction' => 'W', 'element' => 'Metal',
-            'color' => '#9ca3af', 'bg_color' => '#f9fafb',
+            'name' => 'TUI',
+            'symbol' => '☱',
+            'direction' => 'W',
+            'element' => 'Metal',
+            'color' => '#9ca3af',
+            'bg_color' => '#f9fafb',
         ],
         8 => [
-            'name' => 'KEN', 'symbol' => '☶', 'direction' => 'NE', 'element' => 'Earth',
-            'color' => '#b45309', 'bg_color' => '#fde68a',
+            'name' => 'KEN',
+            'symbol' => '☶',
+            'direction' => 'NE',
+            'element' => 'Earth',
+            'color' => '#b45309',
+            'bg_color' => '#fde68a',
         ],
         9 => [
-            'name' => 'LI', 'symbol' => '☲', 'direction' => 'S', 'element' => 'Fire',
-            'color' => '#dc2626', 'bg_color' => '#fef2f2',
+            'name' => 'LI',
+            'symbol' => '☲',
+            'direction' => 'S',
+            'element' => 'Fire',
+            'color' => '#dc2626',
+            'bg_color' => '#fef2f2',
+        ],
+        5 => [
+            'name' => 'Tai Qi',
+            'symbol' => '☯',
+            'direction' => 'Center',
+            'element' => 'Earth',
+            'color' => '#ca8a04',
+            'bg_color' => '#fef9c3',
         ],
     ];
+
+    // === LIFE ASPIRATIONS (Lebensbereiche) ===
+    // Mapping der Trigramme zu ihren Lebensbereichen im Bagua
+    public const LIFE_ASPIRATIONS = [
+        1 => 'Karriere',           // Kan (N) - Career
+        2 => 'Partnerschaft',      // Kun (SW) - Love & Relationships
+        3 => 'Familie & Gesundheit', // Chen (E) - Family & Health
+        4 => 'Reichtum',           // Sun (SE) - Wealth & Prosperity
+        5 => 'Gesundheit',         // Tai Qi (Center) - Health & Unity
+        6 => 'Hilfreiche Freunde', // Chien (NW) - Helpful People & Travel
+        7 => 'Kinder & Kreativität', // Tui (W) - Children & Creativity
+        8 => 'Wissen',             // Ken (NE) - Knowledge & Self-Cultivation
+        9 => 'Ruhm',               // Li (S) - Fame & Recognition
+    ];
+
+    /**
+     * Get the life aspiration (Lebensbereich) for a given Gua number.
+     */
+    public function getLifeAspiration(int $gua): string
+    {
+        return self::LIFE_ASPIRATIONS[$gua] ?? __('Unknown');
+    }
 
     /**
      * Berechnet das Ming Gua (Life Kua) basierend auf Jahr und Geschlecht.
@@ -115,6 +177,54 @@ class MingGuaCalculator
             $n = array_sum(str_split((string)$n));
         }
         return $n;
+    }
+
+    /**
+     * Determines the element of the birth year (Heavenly Stem).
+     */
+
+
+    /**
+     * Maps degrees to a cardinal direction code (N, NE, E, etc.).
+     */
+    public function getDirectionFromDegrees(float $degrees): string
+    {
+        // Normalize degrees
+        $degrees = fmod($degrees, 360);
+        if ($degrees < 0) $degrees += 360;
+
+        if ($degrees >= 337.5 || $degrees < 22.5) return 'N';
+        if ($degrees >= 22.5 && $degrees < 67.5) return 'NE';
+        if ($degrees >= 67.5 && $degrees < 112.5) return 'E';
+        if ($degrees >= 112.5 && $degrees < 157.5) return 'SE';
+        if ($degrees >= 157.5 && $degrees < 202.5) return 'S';
+        if ($degrees >= 202.5 && $degrees < 247.5) return 'SW';
+        if ($degrees >= 247.5 && $degrees < 292.5) return 'W';
+        if ($degrees >= 292.5 && $degrees < 337.5) return 'NW';
+
+        return 'N'; // Fallback
+    }
+
+    /**
+     * Maps degrees to the corresponding Trigram / Gua number (1-9).
+     * Based on Standard 24 Mountains or 8 Directions.
+     */
+    public function getTrigramFromDegrees(float $degrees): int
+    {
+        // Normalize degrees
+        $degrees = fmod($degrees, 360);
+        if ($degrees < 0) $degrees += 360;
+
+        if ($degrees >= 337.5 || $degrees < 22.5) return 1; // Kan (N)
+        if ($degrees >= 22.5 && $degrees < 67.5) return 8; // Gen (NE)
+        if ($degrees >= 67.5 && $degrees < 112.5) return 3; // Zhen (E)
+        if ($degrees >= 112.5 && $degrees < 157.5) return 4; // Xun (SE)
+        if ($degrees >= 157.5 && $degrees < 202.5) return 9; // Li (S)
+        if ($degrees >= 202.5 && $degrees < 247.5) return 2; // Kun (SW)
+        if ($degrees >= 247.5 && $degrees < 292.5) return 7; // Dui (W)
+        if ($degrees >= 292.5 && $degrees < 337.5) return 6; // Qian (NW)
+
+        return 5; // Should not happen
     }
 
     /**
@@ -213,6 +323,26 @@ class MingGuaCalculator
         }
 
         return ['rating' => '-', 'quality' => __('Neutral'), 'is_compatible' => false];
+    }
+
+    /**
+     * Returns the type of a direction (e.g. sheng_qi, jue_ming) for a given Gua.
+     */
+    public function getDirectionType(int $gua, string $direction): ?string
+    {
+        $map = [
+            1 => ['SE' => 'sheng_qi', 'E' => 'tian_yi', 'S' => 'yan_nian', 'N' => 'fu_wei', 'SW' => 'jue_ming', 'NE' => 'wu_gui', 'NW' => 'liu_sha', 'W' => 'huo_hai'],
+            2 => ['NE' => 'sheng_qi', 'W' => 'tian_yi', 'NW' => 'yan_nian', 'SW' => 'fu_wei', 'N' => 'jue_ming', 'SE' => 'wu_gui', 'S' => 'liu_sha', 'E' => 'huo_hai'],
+            3 => ['S' => 'sheng_qi', 'N' => 'tian_yi', 'SE' => 'yan_nian', 'E' => 'fu_wei', 'W' => 'jue_ming', 'NW' => 'wu_gui', 'NE' => 'liu_sha', 'SW' => 'huo_hai'],
+            4 => ['N' => 'sheng_qi', 'S' => 'tian_yi', 'E' => 'yan_nian', 'SE' => 'fu_wei', 'NE' => 'jue_ming', 'SW' => 'wu_gui', 'W' => 'liu_sha', 'NW' => 'huo_hai'],
+            6 => ['W' => 'sheng_qi', 'NE' => 'tian_yi', 'SW' => 'yan_nian', 'NW' => 'fu_wei', 'S' => 'jue_ming', 'E' => 'wu_gui', 'SE' => 'liu_sha', 'N' => 'huo_hai'],
+            7 => ['NW' => 'sheng_qi', 'SW' => 'tian_yi', 'NE' => 'yan_nian', 'W' => 'fu_wei', 'E' => 'jue_ming', 'S' => 'wu_gui', 'N' => 'liu_sha', 'SE' => 'huo_hai'],
+            8 => ['SW' => 'sheng_qi', 'NW' => 'tian_yi', 'W' => 'yan_nian', 'NE' => 'fu_wei', 'SE' => 'jue_ming', 'N' => 'wu_gui', 'E' => 'liu_sha', 'S' => 'huo_hai'],
+            9 => ['E' => 'sheng_qi', 'SE' => 'tian_yi', 'N' => 'yan_nian', 'S' => 'fu_wei', 'NW' => 'jue_ming', 'W' => 'wu_gui', 'SW' => 'liu_sha', 'NE' => 'huo_hai'],
+            5 => [] // Special case, handled as 2 (male) or 8 (female) usually, but raw Gua 5 is not standard in this context without gender
+        ];
+
+        return $map[$gua][$direction] ?? null;
     }
 
     /**
@@ -317,8 +447,15 @@ class MingGuaCalculator
         // Sterne als Elemente
         // 1: Water, 2: Earth, 3: Wood, 4: Wood, 5: Earth, 6: Metal, 7: Metal, 8: Earth, 9: Fire
         $starElements = [
-            1 => 'Water', 2 => 'Earth', 3 => 'Wood', 4 => 'Wood',
-            5 => 'Earth', 6 => 'Metal', 7 => 'Metal', 8 => 'Earth', 9 => 'Fire'
+            1 => 'Water',
+            2 => 'Earth',
+            3 => 'Wood',
+            4 => 'Wood',
+            5 => 'Earth',
+            6 => 'Metal',
+            7 => 'Metal',
+            8 => 'Earth',
+            9 => 'Fire'
         ];
 
         $mountainElement = $starElements[$mountainStar] ?? __('Unknown');
@@ -582,11 +719,11 @@ class MingGuaCalculator
         }
 
         $project = $floorPlan->project;
-        
+
         // Determine Directions
         $compass = $compassDirection ?? $project->compass_direction;
         $sitting = $sittingDirection ?? $project->sitting_direction;
-        
+
         // Fallback for Sitting if not provided
         if ($sitting === null && $compass !== null) {
             $sitting = fmod($compass + 180, 360);
@@ -595,11 +732,11 @@ class MingGuaCalculator
         // 1. Calculate Trigrams (House Group) based on Sitting
         $sitzGua = $this->degreesToTrigram($sitting);
         $houseGroup = $this->calculateHouseGroup($sitzGua);
-        
+
         // 2. Rotate Grid based on Compass (Facing Logic)
         $facingTrigramForGrid = $this->degreesToTrigram($compass);
         $baguaGrid = $this->rotateBaguaGrid($facingTrigramForGrid);
-        
+
         // Flying Stars Logic
         $flyingStars = null;
         $user = Auth::user();
@@ -608,11 +745,11 @@ class MingGuaCalculator
             $flyingStars = $fsService->calculateChart(
                 $project->period,
                 $project->compass_direction, // Uses Compass
-                $project->facing_mountain, 
+                $project->facing_mountain,
                 (bool)$project->is_replacement_chart
             );
-            
-             if (!$project->facing_mountain) {
+
+            if (!$project->facing_mountain) {
                 if ($flyingStars['needs_replacement'] && !$project->is_replacement_chart) {
                     $flyingStars = $fsService->calculateChart(
                         $project->period,
@@ -634,7 +771,7 @@ class MingGuaCalculator
         $results = [];
 
         foreach ($baguaGrid as $position => $gua) {
-            if ($position != 5 && $gua !== null) {
+            if ($gua !== null) {
                 // $gua is the actual Trigram (e.g. 1=Kan) at this Grid Position (e.g. 1=Front)
                 $trigramData = self::CLASSICAL_TRIGRAMS[$gua];
 
@@ -650,8 +787,8 @@ class MingGuaCalculator
                 }
 
                 $data['content'] = json_encode([
-                    'gua_number' => $position, 
-                    'trigram_gua' => $gua,     
+                    'gua_number' => $position,
+                    'trigram_gua' => $gua,
                     'name' => $trigramData['name'],
                     'symbol' => $trigramData['symbol'],
                     'direction' => $trigramData['direction'],
@@ -705,10 +842,10 @@ class MingGuaCalculator
         }
         return 1;
     }
-    
+
     public function calculateHouseGroup(int $sitzGua): string
     {
-         return in_array($sitzGua, [1, 3, 4, 9]) ? 'East' : 'West';
+        return in_array($sitzGua, [1, 3, 4, 9]) ? 'East' : 'West';
     }
 
     public function calculateMountain(float $degrees): string
@@ -717,10 +854,10 @@ class MingGuaCalculator
         // N spans 337.5 to 22.5. 
         // N1: 337.5 - 352.5 (North, 1/3) -> Ren & Zi & Gui mappings... but simplified:
         // N1 (Ren), N2 (Zi), N3 (Gui)
-        
+
         // Logical Index 0..23 starting near N2 essentially?
         // Let's stick to simple degree ranges to ensure "1/3" is correct.
-        
+
         // Define centers of Directions:
         // N: 0 (360), NE: 45, E: 90, SE: 135, S: 180, SW: 225, W: 270, NW: 315
         // Each sector is +/- 22.5 deg.
@@ -730,10 +867,16 @@ class MingGuaCalculator
         // 3/3: [Center + 7.5, Center + 22.5)
 
         $normalized = fmod($degrees + 360, 360);
-        
+
         $directions = [
-            0 => __('North'), 45 => __('Northeast'), 90 => __('East'), 135 => __('Southeast'), 
-            180 => __('South'), 225 => __('Southwest'), 270 => __('West'), 315 => __('Northwest')
+            0 => __('North'),
+            45 => __('Northeast'),
+            90 => __('East'),
+            135 => __('Southeast'),
+            180 => __('South'),
+            225 => __('Southwest'),
+            270 => __('West'),
+            315 => __('Northwest')
         ];
 
         foreach ($directions as $center => $label) {
@@ -744,9 +887,9 @@ class MingGuaCalculator
 
             $inRange = false;
             if ($min > $max) { // Wrap around 0/360
-                 if ($normalized >= $min || $normalized < $max) $inRange = true;
+                if ($normalized >= $min || $normalized < $max) $inRange = true;
             } else {
-                 if ($normalized >= $min && $normalized < $max) $inRange = true;
+                if ($normalized >= $min && $normalized < $max) $inRange = true;
             }
 
             if ($inRange) {
@@ -755,7 +898,7 @@ class MingGuaCalculator
                 // Distance from min:
                 $dist = $normalized - $min;
                 if ($dist < 0) $dist += 360; // Handle wrap
-                
+
                 if ($dist < 15) return "$label, 1/3";
                 if ($dist < 30) return "$label, 2/3";
                 return "$label, 3/3";
@@ -767,20 +910,20 @@ class MingGuaCalculator
 
     private function rotateBaguaGrid(int $facingTrigram): array
     {
-        // Grid Path (CCW from Bottom): 1 -> 6 -> 7 -> 2 -> 9 -> 4 -> 3 -> 8
-        $gridPath = [1, 6, 7, 2, 9, 4, 3, 8];
+        // Grid Path (CW from Bottom): N(1) -> NE(8) -> E(3) -> SE(4) -> S(9) -> SW(2) -> W(7) -> NW(6)
+        $gridPath = [1, 8, 3, 4, 9, 2, 7, 6];
         // Trigram Sequence (N->NE->E...): 1 -> 8 -> 3 -> 4 -> 9 -> 2 -> 7 -> 6
         $trigramSeq = [1, 8, 3, 4, 9, 2, 7, 6];
-        
+
         $startIndex = array_search($facingTrigram, $trigramSeq);
         if ($startIndex === false) $startIndex = 0;
-        
+
         $grid = [];
         $count = count($trigramSeq);
         for ($i = 0; $i < $count; $i++) {
             $grid[$gridPath[$i]] = $trigramSeq[($startIndex + $i) % $count];
         }
-        $grid[5] = null;
+        $grid[5] = 5;
         return $grid;
     }
 

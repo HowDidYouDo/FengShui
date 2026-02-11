@@ -28,7 +28,7 @@ new class extends Component {
         $floorPlan->load(['project.customer', 'baguaNotes.roomAssignments.familyMember', 'baguaNotes.roomAssignments.customer']);
         $this->authorize('view', $floorPlan->project);
         $this->floorPlan = $floorPlan;
-        
+
         // Ensure properties are loaded on the model for reactivity? livewire handles it.
         $this->ventilationDirection = $floorPlan->project->ventilation_direction ?? 0;
 
@@ -139,11 +139,16 @@ new class extends Component {
 
             $numericRating = 0;
             if (isset($comp['rating'])) {
-                if ($comp['rating'] === 'A+') $numericRating = 5;
-                elseif ($comp['rating'] === 'A1') $numericRating = 4;
-                elseif ($comp['rating'] === 'A2') $numericRating = 3;
-                elseif ($comp['rating'] === 'A3') $numericRating = 2;
-                elseif (str_starts_with($comp['rating'], 'D')) $numericRating = 1;
+                if ($comp['rating'] === 'A+')
+                    $numericRating = 5;
+                elseif ($comp['rating'] === 'A1')
+                    $numericRating = 4;
+                elseif ($comp['rating'] === 'A2')
+                    $numericRating = 3;
+                elseif ($comp['rating'] === 'A3')
+                    $numericRating = 2;
+                elseif (str_starts_with($comp['rating'], 'D'))
+                    $numericRating = 1;
             }
 
             $assignment->update(['suitability_rating' => $numericRating]);
@@ -157,7 +162,8 @@ new class extends Component {
     {
         $assignment = RoomAssignment::find($assignmentId);
 
-        if (!$assignment) return;
+        if (!$assignment)
+            return;
 
         // Verify ownership via BaguaNote -> FloorPlan
         $note = $assignment->baguaNote;
@@ -185,7 +191,8 @@ new class extends Component {
             }
         }
 
-        $this->dispatch('bagua-updated',
+        $this->dispatch(
+            'bagua-updated',
             data: $this->getBaguaNotesData(),
             familyMembers: $this->familyMembers
         );
@@ -261,7 +268,7 @@ new class extends Component {
         // 8 -> (0,2)
         // 1 -> (1,2)
         // 6 -> (2,2)
-        
+
         return match ($guaNumber) {
             1 => ['col' => 1, 'row' => 2], // N (Bottom Center)
             2 => ['col' => 2, 'row' => 0], // SW (Top Right)
@@ -281,8 +288,8 @@ new class extends Component {
         $fsFeature = auth()->user()->hasFeature('flying_stars');
 
         return $this->floorPlan->baguaNotes->map(function ($n) use ($fsFeature) {
-             $coords = $this->getGridCoordinates($n->gua_number);
-             return [
+            $coords = $this->getGridCoordinates($n->gua_number);
+            return [
                 'gua' => $n->gua_number,
                 'col' => $coords['col'],
                 'row' => $coords['row'],
@@ -330,7 +337,7 @@ new class extends Component {
                 $compass,
                 $sitting
             );
-            
+
             // Update Properties
             $this->houseGroup = $result['house_group'] ?? '-';
             $this->mountain = $result['mountain'] ?? '-'; // Sitting Mountain
@@ -369,18 +376,22 @@ new class extends Component {
         class="h-16 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-6 bg-white dark:bg-zinc-900 shrink-0 z-20">
         <div class="flex items-center gap-4">
             <flux:button icon="arrow-left" variant="subtle"
-                         :href="route('modules.bagua.show', ['customer' => $floorPlan->project->customer_id, 'tab' => 'map'])">
+                :href="route('modules.bagua.show', ['customer' => $floorPlan->project->customer_id, 'tab' => 'map'])">
                 {{ __('Back') }}
             </flux:button>
 
             <div>
                 <h2 class="font-bold text-zinc-900 dark:text-white">{{ $floorPlan->title }}</h2>
                 <div class="flex gap-2 text-xs text-zinc-500">
-                     <span>{{ __('Facing') }}: <strong class="text-zinc-700 dark:text-zinc-300">{{ $floorPlan->project->facing_direction }}° ({{ $facingMountain }})</strong></span>
-                     <span>&bull;</span>
-                     <span>{{ __('Sitting') }}: <strong class="text-zinc-700 dark:text-zinc-300">{{ $mountain }}</strong></span>
-                     <span>&bull;</span>
-                     <span>{{ __('Group') }}: <strong class="text-zinc-700 dark:text-zinc-300">{{ $houseGroup }}</strong></span>
+                    <span>{{ __('Facing') }}: <strong
+                            class="text-zinc-700 dark:text-zinc-300">{{ $floorPlan->project->facing_direction }}°
+                            ({{ $facingMountain }})</strong></span>
+                    <span>&bull;</span>
+                    <span>{{ __('Sitting') }}: <strong
+                            class="text-zinc-700 dark:text-zinc-300">{{ $mountain }}</strong></span>
+                    <span>&bull;</span>
+                    <span>{{ __('Group') }}: <strong
+                            class="text-zinc-700 dark:text-zinc-300">{{ $houseGroup }}</strong></span>
                 </div>
             </div>
         </div>
@@ -391,8 +402,8 @@ new class extends Component {
                 {{ __('Ventilation Direction (°)') }}:
             </label>
             <input type="number" wire:model.live="ventilationDirection" min="0" max="360" step="1"
-                   class="w-20 px-2 py-1 text-sm border border-zinc-300 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white"
-                   placeholder="0-360">
+                class="w-20 px-2 py-1 text-sm border border-zinc-300 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white"
+                placeholder="0-360">
             <span class="text-xs text-zinc-400">°</span>
             <flux:button size="sm" wire:click="updateVentilationDirection">
                 {{ __('Apply') }}
@@ -416,35 +427,35 @@ new class extends Component {
     <!-- CANVAS AREA + SIDEBAR -->
     <div class="flex-1 flex overflow-hidden">
         <div class="flex-1 relative overflow-hidden flex items-center justify-center p-8" @dragover.prevent
-             @drop.prevent="onDropMember($event)">
+            @drop.prevent="onDropMember($event)">
             <div
                 class="relative shadow-2xl bg-white select-none max-w-full max-h-full transition-all duration-200 ease-out">
 
                 <!-- 1. BILD -->
                 <img x-ref="image" :src="imageUrl" @load="initDimensions" alt="{{ __('Floor plan') }}"
-                     class="block max-w-full max-h-[calc(100vh-150px)] object-contain pointer-events-none select-none">
+                    class="block max-w-full max-h-[calc(100vh-150px)] object-contain pointer-events-none select-none">
 
                 <!-- 2. SVG OVERLAY -->
                 <svg class="absolute inset-0 w-full h-full z-10 overflow-visible pointer-events-none"
-                     :viewBox="`0 0 ${renderWidth} ${renderHeight}`">
+                    :viewBox="`0 0 ${renderWidth} ${renderHeight}`">
 
                     <!-- 3x3 GRID -->
                     <g class="opacity-60">
                         <line :x1="toView(h.x1)" :y1="toView(h.y1 + (h.y2-h.y1)*0.33)" :x2="toView(h.x2)"
-                              :y2="toView(h.y1 + (h.y2-h.y1)*0.33)" stroke="#ef4444" stroke-width="2"
-                              vector-effect="non-scaling-stroke"/>
+                            :y2="toView(h.y1 + (h.y2-h.y1)*0.33)" stroke="#ef4444" stroke-width="2"
+                            vector-effect="non-scaling-stroke" />
                         <line :x1="toView(h.x1)" :y1="toView(h.y1 + (h.y2-h.y1)*0.66)" :x2="toView(h.x2)"
-                              :y2="toView(h.y1 + (h.y2-h.y1)*0.66)" stroke="#ef4444" stroke-width="2"
-                              vector-effect="non-scaling-stroke"/>
+                            :y2="toView(h.y1 + (h.y2-h.y1)*0.66)" stroke="#ef4444" stroke-width="2"
+                            vector-effect="non-scaling-stroke" />
                         <line :x1="toView(h.x1 + (h.x2-h.x1)*0.33)" :y1="toView(h.y1)"
-                              :x2="toView(h.x1 + (h.x2-h.x1)*0.33)" :y2="toView(h.y2)" stroke="#ef4444" stroke-width="2"
-                              vector-effect="non-scaling-stroke"/>
+                            :x2="toView(h.x1 + (h.x2-h.x1)*0.33)" :y2="toView(h.y2)" stroke="#ef4444" stroke-width="2"
+                            vector-effect="non-scaling-stroke" />
                         <line :x1="toView(h.x1 + (h.x2-h.x1)*0.66)" :y1="toView(h.y1)"
-                              :x2="toView(h.x1 + (h.x2-h.x1)*0.66)" :y2="toView(h.y2)" stroke="#ef4444" stroke-width="2"
-                              vector-effect="non-scaling-stroke"/>
+                            :x2="toView(h.x1 + (h.x2-h.x1)*0.66)" :y2="toView(h.y2)" stroke="#ef4444" stroke-width="2"
+                            vector-effect="non-scaling-stroke" />
                         <rect :x="toView(h.x1)" :y="toView(h.y1)" :width="toView(h.x2 - h.x1)"
-                              :height="toView(h.y2 - h.y1)" fill="none" stroke="#3b82f6" stroke-width="2"
-                              vector-effect="non-scaling-stroke"/>
+                            :height="toView(h.y2 - h.y1)" fill="none" stroke="#3b82f6" stroke-width="2"
+                            vector-effect="non-scaling-stroke" />
                     </g>
 
                     <!-- DB NOTES (Trigram-Rechtecke) -->
@@ -456,7 +467,10 @@ new class extends Component {
                                 $data = json_decode(json_decode($rawContent, true), true) ?? [];
 
                             $guaNum = $note->gua_number;
-                            $trigram = $data['name'] ?? '???';
+                            $showAspirations = auth()->user()->settings['show_bagua_aspirations'] ?? false;
+                            $trigram = $showAspirations
+                                ? app(MingGuaCalculator::class)->getLifeAspiration($data['trigram_gua'] ?? $guaNum)
+                                : ($data['name'] ?? '???');
                             $direction = $data['direction'] ?? '?';
                             $bgcolor = $data['bg_color'] ?? '#d1d5db';
                             $color = $data['color'] ?? '#6b7280';
@@ -468,45 +482,43 @@ new class extends Component {
 
                         <g>
                             <rect :x="toView(h.x1 + {{ $col }} * (h.x2-h.x1)/3)"
-                                  :y="toView(h.y1 + {{ $row }} * (h.y2-h.y1)/3)" :width="toView((h.x2-h.x1)/3)"
-                                  :height="toView((h.y2-h.y1)/3)" fill="{{ $bgcolor }}" fill-opacity="0.6"
-                                  stroke="{{ $color }}" stroke-width="2" rx="8"/>
+                                :y="toView(h.y1 + {{ $row }} * (h.y2-h.y1)/3)" :width="toView((h.x2-h.x1)/3)"
+                                :height="toView((h.y2-h.y1)/3)" fill="{{ $bgcolor }}" fill-opacity="0.6"
+                                stroke="{{ $color }}" stroke-width="2" rx="8" />
                             <text :x="toView(h.x1 + ({{ $col }} + 0.5) * (h.x2-h.x1)/3)"
-                                  :y="toView(h.y1 + {{ $row }} * (h.y2-h.y1)/3) + 16" font-size="12" font-weight="600"
-                                  fill="{{ $color }}" text-anchor="middle">{{ $direction }}</text>
+                                :y="toView(h.y1 + {{ $row }} * (h.y2-h.y1)/3) + 16" font-size="12" font-weight="600"
+                                fill="{{ $color }}" text-anchor="middle">{{ $direction }}</text>
                             <text :x="toView(h.x1 + ({{ $col }} + 0.5) * (h.x2-h.x1)/3)"
-                                  :y="toView(h.y1 + ({{ $row }} + 0.5) * (h.y2-h.y1)/3) + 4" font-size="16"
-                                  font-weight="700"
-                                  fill="{{ $color }}" text-anchor="middle">{{ $trigram }}</text>
+                                :y="toView(h.y1 + ({{ $row }} + 0.5) * (h.y2-h.y1)/3) + 4" font-size="16" font-weight="700"
+                                fill="{{ $color }}" text-anchor="middle">{{ $trigram }}</text>
 
                             <!-- Flying Stars DISPLAY -->
                             @if(auth()->user()->hasFeature('flying_stars'))
                                 <g class="flying-stars text-[11px] font-black">
                                     {{-- White glow/halo for better contrast --}}
                                     <text :x="toView(h.x1 + {{ $col }} * (h.x2-h.x1)/3) + 8"
-                                          :y="toView(h.y1 + {{ $row }} * (h.y2-h.y1)/3) + 30"
-                                          fill="white" stroke="white" stroke-width="2" stroke-linejoin="round"
-                                          x-text="note.mountain_star" x-show="note.mountain_star"></text>
+                                        :y="toView(h.y1 + {{ $row }} * (h.y2-h.y1)/3) + 30" fill="white" stroke="white"
+                                        stroke-width="2" stroke-linejoin="round" x-text="note.mountain_star"
+                                        x-show="note.mountain_star"></text>
                                     <text :x="toView(h.x1 + {{ $col }} * (h.x2-h.x1)/3) + 8"
-                                          :y="toView(h.y1 + {{ $row }} * (h.y2-h.y1)/3) + 30"
-                                          fill="#b45309" x-text="note.mountain_star" x-show="note.mountain_star"></text>
+                                        :y="toView(h.y1 + {{ $row }} * (h.y2-h.y1)/3) + 30" fill="#b45309"
+                                        x-text="note.mountain_star" x-show="note.mountain_star"></text>
 
                                     <text :x="toView(h.x1 + ({{ $col }} + 1) * (h.x2-h.x1)/3) - 14"
-                                          :y="toView(h.y1 + {{ $row }} * (h.y2-h.y1)/3) + 30"
-                                          fill="white" stroke="white" stroke-width="2" stroke-linejoin="round"
-                                          x-text="note.water_star" x-show="note.water_star"></text>
+                                        :y="toView(h.y1 + {{ $row }} * (h.y2-h.y1)/3) + 30" fill="white" stroke="white"
+                                        stroke-width="2" stroke-linejoin="round" x-text="note.water_star"
+                                        x-show="note.water_star"></text>
                                     <text :x="toView(h.x1 + ({{ $col }} + 1) * (h.x2-h.x1)/3) - 14"
-                                          :y="toView(h.y1 + {{ $row }} * (h.y2-h.y1)/3) + 30"
-                                          fill="#1d4ed8" x-text="note.water_star" x-show="note.water_star"></text>
+                                        :y="toView(h.y1 + {{ $row }} * (h.y2-h.y1)/3) + 30" fill="#1d4ed8"
+                                        x-text="note.water_star" x-show="note.water_star"></text>
 
                                     <text :x="toView(h.x1 + ({{ $col }} + 0.5) * (h.x2-h.x1)/3)"
-                                          :y="toView(h.y1 + ({{ $row }} + 1) * (h.y2-h.y1)/3) - 8"
-                                          fill="white" stroke="white" stroke-width="2" stroke-linejoin="round"
-                                          text-anchor="middle" x-text="note.base_star" x-show="note.base_star"></text>
+                                        :y="toView(h.y1 + ({{ $row }} + 1) * (h.y2-h.y1)/3) - 8" fill="white" stroke="white"
+                                        stroke-width="2" stroke-linejoin="round" text-anchor="middle" x-text="note.base_star"
+                                        x-show="note.base_star"></text>
                                     <text :x="toView(h.x1 + ({{ $col }} + 0.5) * (h.x2-h.x1)/3)"
-                                          :y="toView(h.y1 + ({{ $row }} + 1) * (h.y2-h.y1)/3) - 8"
-                                          fill="#52525b" text-anchor="middle" x-text="note.base_star"
-                                          x-show="note.base_star"></text>
+                                        :y="toView(h.y1 + ({{ $row }} + 1) * (h.y2-h.y1)/3) - 8" fill="#52525b"
+                                        text-anchor="middle" x-text="note.base_star" x-show="note.base_star"></text>
                                 </g>
                             @endif
                         </g>
@@ -516,26 +528,24 @@ new class extends Component {
                 <!-- ASSIGNED MEMBERS OVERLAY -->
                 <template x-for="note in baguaNotes" :key="note.gua">
                     <div class="absolute flex flex-wrap gap-1 justify-center content-center p-1 pointer-events-auto"
-                         :style="`
+                        :style="`
                         left: ${toView(h.x1 + note.col * (h.x2-h.x1)/3)}px;
                         top: ${toView(h.y1 + note.row * (h.y2-h.y1)/3) + 30}px;
                         width: ${toView((h.x2-h.x1)/3)}px;
                         height: ${toView((h.y2-h.y1)/3) - 30}px;
                         `">
                         <template x-for="assign in note.assignments" :key="assign.id">
-                            <div
-                                class="relative group flex items-center justify-center rounded-full shadow-md border-2 p-0.5 transition-all hover:scale-110"
+                            <div class="relative group flex items-center justify-center rounded-full shadow-md border-2 p-0.5 transition-all hover:scale-110"
                                 :class="assign.colors ? assign.colors[2] + ' ' + assign.colors[1] : 'bg-white border-zinc-200 dark:border-zinc-700'"
                                 :title="assign.person_name + ' (Gua ' + assign.ming_gua + ')'">
                                 <img :src="assign.avatar" :alt="assign.person_name"
-                                     class="w-10 h-10 rounded-full object-cover">
-                                <div
-                                    class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-[10px] font-bold"
+                                    class="w-10 h-10 rounded-full object-cover">
+                                <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-[10px] font-bold"
                                     :class="assign.colors ? assign.colors[0] : 'text-zinc-500'"
                                     x-text="assign.ming_gua"></div>
 
                                 <button @click="$wire.removeAssignment(assign.id)"
-                                        class="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-sm opacity-0 group-hover:opacity-100 transition-all transform z-10 cursor-pointer">
+                                    class="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-sm opacity-0 group-hover:opacity-100 transition-all transform z-10 cursor-pointer">
                                     &times;
                                 </button>
                             </div>
@@ -545,26 +555,20 @@ new class extends Component {
 
 
                 <!-- HANDLES (unverändert) -->
-                <div
-                    class="absolute w-6 h-6 bg-blue-500 rounded-full -translate-x-1/2 -translate-y-1/2 cursor-nw-resize z-20 shadow-md border-2 border-white hover:scale-125 transition-transform"
+                <div class="absolute w-6 h-6 bg-blue-500 rounded-full -translate-x-1/2 -translate-y-1/2 cursor-nw-resize z-20 shadow-md border-2 border-white hover:scale-125 transition-transform"
                     :style="`left: ${toView(h.x1)}px; top: ${toView(h.y1)}px`" @mousedown="startDrag('tl', $event)">
                 </div>
-                <div
-                    class="absolute w-6 h-6 bg-blue-500 rounded-full -translate-x-1/2 -translate-y-1/2 cursor-se-resize z-20 shadow-md border-2 border-white hover:scale-125 transition-transform"
+                <div class="absolute w-6 h-6 bg-blue-500 rounded-full -translate-x-1/2 -translate-y-1/2 cursor-se-resize z-20 shadow-md border-2 border-white hover:scale-125 transition-transform"
                     :style="`left: ${toView(h.x2)}px; top: ${toView(h.y2)}px`" @mousedown="startDrag('br', $event)">
                 </div>
-                <div
-                    class="absolute w-8 h-8 bg-white/80 rounded cursor-move z-10 flex items-center justify-center border border-zinc-400 shadow-sm hover:bg-white hover:scale-110 transition-transform"
+                <div class="absolute w-8 h-8 bg-white/80 rounded cursor-move z-10 flex items-center justify-center border border-zinc-400 shadow-sm hover:bg-white hover:scale-110 transition-transform"
                     :style="`left: ${toView(h.x1 + (h.x2-h.x1)/2)}px; top: ${toView(h.y1 + (h.y2-h.y1)/2)}px; transform: translate(-50%, -50%)`"
                     @mousedown="startDrag('move', $event)">
-                    <flux:icon.arrows-pointing-out class="size-4 text-black"/>
+                    <flux:icon.arrows-pointing-out class="size-4 text-black" />
                 </div>
 
             </div>
-
-
         </div>
-
 
         <!-- SIDEBAR -->
         <div
@@ -576,29 +580,28 @@ new class extends Component {
                 <div class="flex flex-col gap-2">
                     <template x-for="member in familyMembers" :key="member.type + member.id">
                         <div draggable="true" @dragstart="startDragMember($event, member)"
-                             class="flex items-center gap-3 p-2 rounded-xl hover:shadow-md cursor-grab active:cursor-grabbing border-2 transition-all group"
-                             :class="member.colors ? member.colors[2] + ' ' + member.colors[1] : 'bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700'">
+                            class="flex items-center gap-3 p-2 rounded-xl hover:shadow-md cursor-grab active:cursor-grabbing border-2 transition-all group"
+                            :class="member.colors ? member.colors[2] + ' ' + member.colors[1] : 'bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700'">
                             <div class="relative">
                                 <img :src="member.avatar" :alt="member.name"
-                                     class="w-10 h-10 rounded-full border-2 border-white dark:border-zinc-900 shadow-sm">
-                                <div
-                                    class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-[10px] font-bold shadow-sm"
+                                    class="w-10 h-10 rounded-full border-2 border-white dark:border-zinc-900 shadow-sm">
+                                <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-[10px] font-bold shadow-sm"
                                     :class="member.colors ? member.colors[0] : 'text-zinc-500'"
                                     x-text="member.ming_gua"></div>
                             </div>
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-bold truncate text-zinc-900 dark:text-gray-100"
-                                   x-text="member.name"></p>
+                                    x-text="member.name"></p>
                                 <div class="flex items-center justify-between">
                                     <p class="text-[10px] uppercase tracking-wider font-semibold opacity-70"
-                                       :class="member.colors ? member.colors[0] : 'text-zinc-500'"
-                                       x-text="member.element || '{{ __('Unknown') }}'"></p>
+                                        :class="member.colors ? member.colors[0] : 'text-zinc-500'"
+                                        x-text="member.element || '{{ __('Unknown') }}'"></p>
 
                                     <template x-if="member.compatibility">
                                         <div class="px-1.5 py-0.5 rounded text-[10px] font-black shadow-sm border"
-                                             :class="member.compatibility.class"
-                                             :title="member.compatibility.quality + ': ' + member.compatibility.description"
-                                             x-text="member.compatibility.rating"></div>
+                                            :class="member.compatibility.class"
+                                            :title="member.compatibility.quality + ': ' + member.compatibility.description"
+                                            x-text="member.compatibility.rating"></div>
                                     </template>
                                 </div>
                                 <template x-if="member.assigned_room">
@@ -628,7 +631,7 @@ new class extends Component {
             baguaNotes: config.baguaNotes || [],
             familyMembers: config.familyMembers || [],
             dragOverNote: null,
-            dragging: null, startPos: {x: 0, y: 0}, initialH: {},
+            dragging: null, startPos: { x: 0, y: 0 }, initialH: {},
 
             init() {
                 window.addEventListener('resize', () => this.updateDimensions());
@@ -686,7 +689,7 @@ new class extends Component {
                 e.preventDefault();
                 e.stopPropagation();
                 this.dragging = handle;
-                this.startPos = {x: e.clientX, y: e.clientY};
+                this.startPos = { x: e.clientX, y: e.clientY };
                 this.initialH = JSON.parse(JSON.stringify(this.h));
                 this._boundOnDrag = this.onDrag.bind(this);
                 this._boundStopDrag = this.stopDrag.bind(this);

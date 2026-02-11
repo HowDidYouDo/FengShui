@@ -149,11 +149,9 @@ new class extends Component {
 
     <!-- ADD BUTTON (Only show if limit not reached) -->
     @if($members->count() < 5)
-        <button
-            wire:click="$set('showCreateModal', true)"
-            class="w-full flex items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-brand-blue hover:bg-brand-blue/5 transition-all text-zinc-400 hover:text-brand-blue"
-        >
-            <flux:icon.plus class="size-5"/>
+        <button wire:click="$set('showCreateModal', true)"
+            class="w-full flex items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-brand-blue hover:bg-brand-blue/5 transition-all text-zinc-400 hover:text-brand-blue">
+            <flux:icon.plus class="size-5" />
             <span class="font-medium">{{ __('Add Family Member') }}</span>
         </button>
     @endif
@@ -203,37 +201,27 @@ new class extends Component {
 
                         <!-- Action Buttons -->
                         <div class="flex gap-2">
-                            <flux:button
-                                icon="pencil"
-                                size="sm"
-                                variant="subtle"
-                                wire:click="editMember({{ $member->id }})"
-                            />
-                            <flux:button
-                                icon="trash"
-                                size="sm"
-                                variant="danger"
-                                wire:click="deleteMember({{ $member->id }})"
-                                wire:confirm="{{ __('Delete this family member permanently?') }}"
-                            />
+                            <flux:button icon="pencil" size="sm" variant="subtle" wire:click="editMember({{ $member->id }})" />
+                            <flux:button icon="trash" size="sm" variant="danger" wire:click="deleteMember({{ $member->id }})"
+                                wire:confirm="{{ __('Delete this family member permanently?') }}" />
                         </div>
                     </div>
 
                     <!-- Birth Data -->
                     <div class="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800/50 text-sm space-y-1">
                         <div class="flex items-center gap-2 text-zinc-500">
-                            <flux:icon.calendar class="size-4 text-zinc-400"/>
+                            <flux:icon.calendar class="size-4 text-zinc-400" />
                             <span>{{ $member->birth_date->format('d.m.Y') }}</span>
                             @if($member->birth_time)
                                 <span class="text-zinc-400">•</span>
-                                <flux:icon.clock class="size-4 text-zinc-400"/>
+                                <flux:icon.clock class="size-4 text-zinc-400" />
                                 <span>{{ \Carbon\Carbon::parse($member->birth_time)->format('H:i') }}</span>
                             @endif
                         </div>
 
                         @if($member->birth_place)
                             <div class="flex items-center gap-2 text-zinc-500">
-                                <flux:icon.map-pin class="size-4 text-zinc-400"/>
+                                <flux:icon.map-pin class="size-4 text-zinc-400" />
                                 <span>{{ $member->birth_place }}</span>
                             </div>
                         @endif
@@ -243,13 +231,13 @@ new class extends Component {
                             @if($member->gender === 'm')
                                 <div
                                     class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium">
-                                    <flux:icon.user class="size-3"/>
+                                    <flux:icon.user class="size-3" />
                                     {{ __('Male') }}
                                 </div>
                             @else
                                 <div
                                     class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-xs font-medium">
-                                    <flux:icon.user-circle class="size-3"/>
+                                    <flux:icon.user-circle class="size-3" />
                                     {{ __('Female') }}
                                 </div>
                             @endif
@@ -259,9 +247,8 @@ new class extends Component {
             @endforeach
         </div>
     @else
-        <div
-            class="text-center py-8 text-zinc-400 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
-            <flux:icon.users class="size-12 mx-auto mb-2 text-zinc-300"/>
+        <div class="text-center py-8 text-zinc-400 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
+            <flux:icon.users class="size-12 mx-auto mb-2 text-zinc-300" />
             <p>{{ __('No family members added yet.') }}</p>
         </div>
     @endif
@@ -271,27 +258,22 @@ new class extends Component {
         <div class="space-y-6">
             <div>
                 <h3 class="text-lg font-bold text-zinc-900 dark:text-white">{{ __('Add Family Member') }}</h3>
-                <p class="text-sm text-zinc-500">{{ __('Add a family member to include them in the Feng Shui analysis.') }}</p>
+                <p class="text-sm text-zinc-500">
+                    {{ __('Add a family member to include them in the Feng Shui analysis.') }}</p>
             </div>
 
             <form wire:submit="addMember" class="space-y-6">
 
                 <!-- Basic Information -->
                 <div class="space-y-4">
-                    <h4 class="text-sm font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">{{ __('Basic Information') }}</h4>
+                    <h4 class="text-sm font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+                        {{ __('Basic Information') }}</h4>
 
-                    <flux:input
-                        wire:model="name"
-                        :label="__('Full Name')"
-                        :placeholder="__('e.g. Maria Schmidt')"
-                        required
-                    />
+                    <flux:input wire:model="name" :label="__('Full Name')" :placeholder="__('e.g. Maria Schmidt')"
+                        required />
 
-                    <flux:select
-                        wire:model="relationship"
-                        :label="__('Relationship')"
-                        :placeholder="__('Select relationship...')"
-                    >
+                    <flux:select wire:model="relationship" :label="__('Relationship')"
+                        :placeholder="__('Select relationship...')">
                         <flux:select.option value="">{{ __('No relationship specified') }}</flux:select.option>
                         @foreach(FamilyMember::getRelationships() as $key => $label)
                             <flux:select.option value="{{ $key }}">{{ $label }}</flux:select.option>
@@ -301,19 +283,14 @@ new class extends Component {
 
                 <!-- Birth Data (Required for Gua) -->
                 <div class="space-y-4">
-                    <h4 class="text-sm font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">{{ __('Birth Data') }}</h4>
+                    <h4 class="text-sm font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+                        {{ __('Birth Data') }}</h4>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Left: Birth Place & Gender -->
                         <div class="space-y-4">
-                            <flux:input
-                                wire:model="birth_place"
-                                :label="__('Birth Place')"
-                                icon="map-pin"
-                                type="text"
-                                :placeholder="__('e.g. Hamburg')"
-                                required
-                            />
+                            <flux:input wire:model="birth_place" :label="__('Birth Place')" icon="map-pin" type="text"
+                                :placeholder="__('e.g. Hamburg')" required />
 
                             <flux:radio.group wire:model="gender" :label="__('Biological Sex')" required>
                                 <div class="flex gap-4">
@@ -323,7 +300,7 @@ new class extends Component {
                                         <div
                                             class="p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 hover:border-brand-blue dark:hover:border-brand-blue peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition-all flex items-center justify-center gap-3 h-full">
                                             <flux:icon.user
-                                                class="size-5 text-zinc-400 peer-checked:text-brand-orange"/>
+                                                class="size-5 text-zinc-400 peer-checked:text-brand-orange" />
                                             <span
                                                 class="font-medium text-zinc-700 dark:text-zinc-300 peer-checked:text-brand-orange">
                                                 {{ __('Male') }}
@@ -331,7 +308,7 @@ new class extends Component {
                                         </div>
                                         <div
                                             class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-brand-orange transition-opacity">
-                                            <flux:icon.check-circle class="size-4"/>
+                                            <flux:icon.check-circle class="size-4" />
                                         </div>
                                     </label>
 
@@ -341,7 +318,7 @@ new class extends Component {
                                         <div
                                             class="p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 hover:border-brand-blue dark:hover:border-brand-blue peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition-all flex items-center justify-center gap-3 h-full">
                                             <flux:icon.user-circle
-                                                class="size-5 text-zinc-400 peer-checked:text-brand-orange"/>
+                                                class="size-5 text-zinc-400 peer-checked:text-brand-orange" />
                                             <span
                                                 class="font-medium text-zinc-700 dark:text-zinc-300 peer-checked:text-brand-orange">
                                                 {{ __('Female') }}
@@ -349,7 +326,7 @@ new class extends Component {
                                         </div>
                                         <div
                                             class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-brand-orange transition-opacity">
-                                            <flux:icon.check-circle class="size-4"/>
+                                            <flux:icon.check-circle class="size-4" />
                                         </div>
                                     </label>
                                 </div>
@@ -358,21 +335,11 @@ new class extends Component {
 
                         <!-- Right: Date & Time -->
                         <div class="grid grid-cols-2 gap-4 content-start">
-                            <flux:input
-                                wire:model="birth_date"
-                                :label="__('Birth Date')"
-                                type="date"
-                                icon="calendar"
-                                required
-                            />
+                            <flux:input wire:model="birth_date" :label="__('Birth Date')" type="date" icon="calendar"
+                                required />
 
-                            <flux:input
-                                wire:model="birth_time"
-                                :label="__('Birth Time')"
-                                type="time"
-                                icon="clock"
-                                required
-                            />
+                            <flux:input wire:model="birth_time" :label="__('Birth Time')" type="time" icon="clock"
+                                required />
                         </div>
                     </div>
 
@@ -405,20 +372,14 @@ new class extends Component {
 
                 <!-- Basic Information -->
                 <div class="space-y-4">
-                    <h4 class="text-sm font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">{{ __('Basic Information') }}</h4>
+                    <h4 class="text-sm font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+                        {{ __('Basic Information') }}</h4>
 
-                    <flux:input
-                        wire:model="name"
-                        :label="__('Full Name')"
-                        :placeholder="__('e.g. Maria Schmidt')"
-                        required
-                    />
+                    <flux:input wire:model="name" :label="__('Full Name')" :placeholder="__('e.g. Maria Schmidt')"
+                        required />
 
-                    <flux:select
-                        wire:model="relationship"
-                        :label="__('Relationship')"
-                        :placeholder="__('Select relationship...')"
-                    >
+                    <flux:select wire:model="relationship" :label="__('Relationship')"
+                        :placeholder="__('Select relationship...')">
                         <flux:select.option value="">{{ __('No relationship specified') }}</flux:select.option>
                         @foreach(FamilyMember::getRelationships() as $key => $label)
                             <flux:select.option value="{{ $key }}">{{ $label }}</flux:select.option>
@@ -428,19 +389,14 @@ new class extends Component {
 
                 <!-- Birth Data (Required for Gua) -->
                 <div class="space-y-4">
-                    <h4 class="text-sm font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">{{ __('Birth Data') }}</h4>
+                    <h4 class="text-sm font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+                        {{ __('Birth Data') }}</h4>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Left: Birth Place & Gender -->
                         <div class="space-y-4">
-                            <flux:input
-                                wire:model="birth_place"
-                                :label="__('Birth Place')"
-                                icon="map-pin"
-                                type="text"
-                                :placeholder="__('e.g. Hamburg')"
-                                required
-                            />
+                            <flux:input wire:model="birth_place" :label="__('Birth Place')" icon="map-pin" type="text"
+                                :placeholder="__('e.g. Hamburg')" required />
 
                             <flux:radio.group wire:model="gender" :label="__('Biological Sex')" required>
                                 <div class="flex gap-4">
@@ -450,7 +406,7 @@ new class extends Component {
                                         <div
                                             class="p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 hover:border-brand-blue dark:hover:border-brand-blue peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition-all flex items-center justify-center gap-3 h-full">
                                             <flux:icon.user
-                                                class="size-5 text-zinc-400 peer-checked:text-brand-orange"/>
+                                                class="size-5 text-zinc-400 peer-checked:text-brand-orange" />
                                             <span
                                                 class="font-medium text-zinc-700 dark:text-zinc-300 peer-checked:text-brand-orange">
                                                 {{ __('Male') }}
@@ -458,7 +414,7 @@ new class extends Component {
                                         </div>
                                         <div
                                             class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-brand-orange transition-opacity">
-                                            <flux:icon.check-circle class="size-4"/>
+                                            <flux:icon.check-circle class="size-4" />
                                         </div>
                                     </label>
 
@@ -468,7 +424,7 @@ new class extends Component {
                                         <div
                                             class="p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 hover:border-brand-blue dark:hover:border-brand-blue peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition-all flex items-center justify-center gap-3 h-full">
                                             <flux:icon.user-circle
-                                                class="size-5 text-zinc-400 peer-checked:text-brand-orange"/>
+                                                class="size-5 text-zinc-400 peer-checked:text-brand-orange" />
                                             <span
                                                 class="font-medium text-zinc-700 dark:text-zinc-300 peer-checked:text-brand-orange">
                                                 {{ __('Female') }}
@@ -476,7 +432,7 @@ new class extends Component {
                                         </div>
                                         <div
                                             class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-brand-orange transition-opacity">
-                                            <flux:icon.check-circle class="size-4"/>
+                                            <flux:icon.check-circle class="size-4" />
                                         </div>
                                     </label>
                                 </div>
@@ -485,21 +441,11 @@ new class extends Component {
 
                         <!-- Right: Date & Time -->
                         <div class="grid grid-cols-2 gap-4 content-start">
-                            <flux:input
-                                wire:model="birth_date"
-                                :label="__('Birth Date')"
-                                type="date"
-                                icon="calendar"
-                                required
-                            />
+                            <flux:input wire:model="birth_date" :label="__('Birth Date')" type="date" icon="calendar"
+                                required />
 
-                            <flux:input
-                                wire:model="birth_time"
-                                :label="__('Birth Time')"
-                                type="time"
-                                icon="clock"
-                                required
-                            />
+                            <flux:input wire:model="birth_time" :label="__('Birth Time')" type="time" icon="clock"
+                                required />
                         </div>
                     </div>
 

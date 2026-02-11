@@ -26,7 +26,7 @@ class FlyingStarService
         ['name' => 'W1 (Geng)', 'min' => 247.5, 'max' => 262.5, 'gua' => 7, 'yin_yang' => '+'],
         ['name' => 'W2 (You)', 'min' => 262.5, 'max' => 277.5, 'gua' => 7, 'yin_yang' => '-'],
         ['name' => 'W3 (Xin)', 'min' => 277.5, 'max' => 292.5, 'gua' => 7, 'yin_yang' => '-'],
-        ['name' => 'NW1 (Xu)', 'min' => 292.5, 'max' => 307.5, 'gua' => 6, 'yin_yang' => '+'],
+        ['name' => 'NW1 (Xu)', 'min' => 292.5, 'max' => 307.5, 'gua' => 6, 'yin_yang' => '-'],
         ['name' => 'NW2 (Qian)', 'min' => 307.5, 'max' => 322.5, 'gua' => 6, 'yin_yang' => '+'],
         ['name' => 'NW3 (Hai)', 'min' => 322.5, 'max' => 337.5, 'gua' => 6, 'yin_yang' => '+'],
     ];
