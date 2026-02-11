@@ -1,6 +1,10 @@
 @use('App\Services\Metaphysics\MingGuaCalculator')
 
 @php
+    if (!$project) {
+        return;
+    }
+
     $mingGuaService = new MingGuaCalculator();
 
     // 1. Determine House Details

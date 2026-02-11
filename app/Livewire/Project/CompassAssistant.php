@@ -3,36 +3,42 @@
 namespace App\Livewire\Project;
 
 use App\Models\Project;
-use Livewire\Component;
-use Illuminate\Validation\ValidationException;
-
 use Livewire\Attributes\On;
+use Livewire\Component;
 
 class CompassAssistant extends Component
 {
     public Project $project;
+
     public bool $modalOpen = false;
+
     public int $step = 1;
 
     // Data for Step 2
     public $selectedFloorPlanId;
+
     public $compassReading; // Degrees (0-360)
+
     public $imageArrowAngle; // Degrees (0-360, 0=Project North/Up)
+
     public $imageArrowLength; // Length in pixels (for simple validation)
 
     // Calculated Results for Step 3
     public $calculatedNorthDeviation;
+
     public $calculatedSitting;
+
     public $calculatedFacing;
 
     #[On('openCompassAssistant')]
     public function openCompassAssistant()
     {
+        $this->project->refresh();
         $this->resetForm();
-        
-        // Select first floor plan by default if available
+
+        // Select newest floor plan by default if available
         if ($this->project->floorPlans->count() > 0) {
-            $this->selectedFloorPlanId = $this->project->floorPlans->first()->id;
+            $this->selectedFloorPlanId = $this->project->floorPlans->sortByDesc('created_at')->first()->id;
         }
 
         $this->modalOpen = true;
@@ -79,22 +85,26 @@ class CompassAssistant extends Component
         // Formula: North Deviation = (Compass Reading - Image Arrow Angle) % 360
         // Example: Wall at Bottom (Arrow UP = 0°). Reading North (0°). Dev = 0.
         // Example: Wall at Right (Arrow LEFT = 270°). Reading East (90°). Dev = 90 - 270 = -180 = 180.
-        
+
         $deviation = ($this->compassReading + $this->imageArrowAngle);
-        
+
         // Normalize to 0-360 positive
-        while ($deviation < 0) $deviation += 360;
-        while ($deviation >= 360) $deviation -= 360;
+        while ($deviation < 0) {
+            $deviation += 360;
+        }
+        while ($deviation >= 360) {
+            $deviation -= 360;
+        }
 
         $this->calculatedNorthDeviation = round($deviation, 2);
 
         // User correction: Viewing (Facing) and Sitting directions were swapped.
-        // New Logic: 
+        // New Logic:
         // Facing = Compass Reading.
         // Sitting = Compass Reading + 180.
 
         $this->calculatedSitting = round($this->compassReading, 2);
-        
+
         $sitting = ($this->compassReading + 180) % 360;
         $this->calculatedFacing = round($sitting, 2);
     }

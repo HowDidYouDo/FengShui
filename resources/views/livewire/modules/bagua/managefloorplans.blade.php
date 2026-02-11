@@ -66,6 +66,16 @@ new class extends Component {
         // Reset & Notify
         $this->reset(['newPlanImage', 'newPlanTitle']);
 
+        // Auto-start Compass Assistant if no basic project data exists yet
+        $this->project->refresh();
+        if (
+            $this->project->compass_direction === null &&
+            $this->project->sitting_direction === null &&
+            $this->project->ventilation_direction === null
+        ) {
+            $this->dispatch('openCompassAssistant');
+        }
+
         // Flux Toast (wenn installiert) oder Event dispatch
         // $this->dispatch('plan-uploaded');
     }

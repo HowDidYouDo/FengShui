@@ -25,6 +25,17 @@ class Project extends Model
         'special_chart_type',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($project) {
+            $project->floorPlans()->each(function ($floorPlan) {
+                $floorPlan->delete();
+            });
+        });
+    }
+
     protected $casts = [
         'settled_year' => 'integer',
         'compass_direction' => 'decimal:4',
@@ -59,6 +70,7 @@ class Project extends Model
     public function hasValidDirection(): bool
     {
         $direction = $this->getActiveDirection();
+
         return $direction !== null && $direction >= 0 && $direction <= 360;
     }
 
@@ -70,11 +82,11 @@ class Project extends Model
      */
     public function getActiveDirection(): ?float
     {
-         // ventilation_direction stores the actual facing direction (Blickrichtung)
-         // compass_direction stores the North deviation on the floor plan (for compass rose only)
-         return $this->use_facing_direction
-            ? $this->ventilation_direction
-            : $this->ventilation_direction; // Both paths now use ventilation_direction as it's the facing
+        // ventilation_direction stores the actual facing direction (Blickrichtung)
+        // compass_direction stores the North deviation on the floor plan (for compass rose only)
+        return $this->use_facing_direction
+           ? $this->ventilation_direction
+           : $this->ventilation_direction; // Both paths now use ventilation_direction as it's the facing
     }
 
     /**

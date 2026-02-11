@@ -25,6 +25,22 @@ class extends Component {
     // Toggle für Bagua-Anzeige: Asiatische Namen vs. Deutsche Lebensbereiche
     public bool $showAspirations = false;
 
+    private function calculatePeriod(int $year): int
+    {
+        if ($year >= 2044) return 1;
+        if ($year >= 2024) return 9;
+        if ($year >= 2004) return 8;
+        if ($year >= 1984) return 7;
+        if ($year >= 1964) return 6;
+        if ($year >= 1944) return 5;
+        if ($year >= 1924) return 4;
+        if ($year >= 1904) return 3;
+        if ($year >= 1884) return 2;
+        if ($year >= 1864) return 1;
+        if ($year >= 1844) return 9;
+        return 8; // Fallback
+    }
+
     public function mount(Customer $customer, ?string $tab = null): void
     {
         $this->authorize('view', $customer);
@@ -200,7 +216,9 @@ class extends Component {
         // Wir erstellen ein Standard-Projekt, damit der User sofort loslegen kann
         Project::create([
             'customer_id' => $this->customer->id,
-            'name' => $this->customer->name . __("'s Home"),
+            'name' => __(":name's Home", ['name' => $this->customer->name]),
+            'settled_year' => today()->year,
+            'period' => $this->calculatePeriod(today()->year),
         ]);
 
         // Durch Reactive State wird $this->project automatisch neu geladen
@@ -509,7 +527,9 @@ class extends Component {
                         </div>
                     @endforeach
                     
-                    @include('livewire.modules.bagua.partials.residents-summary', ['project' => $this->project, 'showAspirations' => $showAspirations])    
+                    @if($this->project)
+                        @include('livewire.modules.bagua.partials.residents-summary', ['project' => $this->project, 'showAspirations' => $showAspirations])
+                    @endif
                 </div>
             @endif
 

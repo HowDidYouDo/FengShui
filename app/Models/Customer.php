@@ -34,15 +34,23 @@ class Customer extends Model
         parent::boot();
 
         static::creating(function ($customer) {
-            if (!$customer->user_id && auth()->check()) {
+            if (! $customer->user_id && auth()->check()) {
                 $customer->user_id = auth()->id();
             }
+        });
+
+        static::deleting(function ($customer) {
+            $customer->projects()->each(function ($project) {
+                $project->delete();
+            });
         });
     }
 
     public function getBirthDateAttribute($value)
     {
-        if (!$value) return null;
+        if (! $value) {
+            return null;
+        }
 
         $decrypted = null;
 
